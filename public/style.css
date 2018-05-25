@@ -1,0 +1,11 @@
+.temp-value {
+  font-size: 2em;
+}
+
+.temp-units.us::after {
+  content: "\2109";
+}
+
+.temp-units.metric::after {
+  content: "\2103";
+}

@@ -4,12 +4,32 @@
 <head>
     <title>The Water Temperature</title>
     <script type="text/javascript" src="index.js"></script>
+    <link href="style.css" rel="stylesheet">
 </head>
 
 <body>
     <h1>The Water Temperature</h1>
     <h2>Latest Reading:</h2>
-    <div id="latest-temp" class="temp-value"></div>
+    <div id="latest-temp">
+        <span class="temp-value">--.-</span>
+        <span class="temp-units us"></span>
+    </div>
+    <h2>Over the last 24 hours:</h2>
+    <div>
+        <div id="24-hours-min">
+            <span class="temp-value">--.-</span>
+            <span class="temp-units us"></span>
+        </div>
+        <div id="24-hours-avg">
+            <span class="temp-value">--.-</span>
+            <span class="temp-units us"></span>
+        </div>
+        <div id="24-hours-max">
+            <span class="temp-value">--.-</span>
+            <span class="temp-units us"></span>
+        </div>
+    </div>
+
 </body>
 
 </html>
