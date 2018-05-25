@@ -1,4 +1,14 @@
 (function() {
+  var stationId = "9414290";
+
+  function getBaseDataURL(stationId) {
+    return (
+      "https://tidesandcurrents.noaa.gov/api/datagetter?station=" +
+      stationId +
+      "&product=water_temperature&format=json&units=english&time_zone=lst_ldt"
+    );
+  }
+
   function gotCurrentTemp() {
     var value;
     try {
@@ -59,17 +69,11 @@
 
   var getCurrentTemp = new XMLHttpRequest();
   getCurrentTemp.addEventListener("load", gotCurrentTemp);
-  getCurrentTemp.open(
-    "GET",
-    "https://tidesandcurrents.noaa.gov/api/datagetter?station=9414290&date=latest&product=water_temperature&format=json&units=english&time_zone=lst_ldt"
-  );
+  getCurrentTemp.open("GET", getBaseDataURL(stationId) + "&date=latest");
   getCurrentTemp.send();
 
   var get24Hours = new XMLHttpRequest();
   get24Hours.addEventListener("load", got24Hours);
-  get24Hours.open(
-    "GET",
-    "https://tidesandcurrents.noaa.gov/api/datagetter?station=9414290&range=24&product=water_temperature&format=json&units=english&time_zone=lst_ldt"
-  );
+  get24Hours.open("GET", getBaseDataURL(stationId) + "&range=24");
   get24Hours.send();
 })();
