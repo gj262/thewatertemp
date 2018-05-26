@@ -1,14 +1,8 @@
 (function() {
   var units = "us";
 
-  var stations;
   var latestTemp;
   var twentyFourHoursTempRange;
-
-  function addStationChoiceHandler() {
-    var select = document.getElementById("choose-station");
-    select.addEventListener("change", stationChoosen);
-  }
 
   function setInitialStationChoice(stationId, stationName) {
     var select = document.getElementById("choose-station");
@@ -23,7 +17,7 @@
     try {
       var payload = this.responseText;
       payload = JSON.parse(payload);
-      stations = payload.stations.map(function(station) {
+      var stations = payload.stations.map(function(station) {
         return {
           id: station.id,
           name: station.name + (station.state ? ", " + station.state : "")
@@ -43,12 +37,20 @@
         }
         select.add(opt);
       });
+      addStationChoiceHandler(stations);
     } catch (e) {
       console.log(e);
     }
   }
 
-  function stationChoosen() {
+  function addStationChoiceHandler(stations) {
+    var select = document.getElementById("choose-station");
+    select.addEventListener("change", function() {
+      stationChoosen.bind(this)(stations);
+    });
+  }
+
+  function stationChoosen(stations) {
     var stationId = stations[this.selectedIndex].id;
     localStorage.setItem("stationId", stationId);
     var stationName = stations[this.selectedIndex].name;
@@ -236,7 +238,6 @@
 
     updateStationLink(stationId);
     setInitialStationChoice(stationId, stationName);
-    addStationChoiceHandler();
 
     latestTemp = createTempDisplayComponent("latest-temp");
     twentyFourHoursTempRange = createTempRangeComponent("24-hours");
