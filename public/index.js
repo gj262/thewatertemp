@@ -1,6 +1,5 @@
 (function() {
-  var units = "us";
-
+  var units;
   var latestTemp;
   var twentyFourHoursTempRange;
 
@@ -79,6 +78,19 @@
     var element = document.getElementById("station-error");
     element.innerHTML = "";
     element.classList.add("no-error");
+  }
+
+  function updateUnitLinks(stationId) {
+    var element = document.getElementById("choose-unit");
+    var links = element.querySelectorAll("a");
+    links[0].addEventListener("click", updateUnits.bind({}, "us"));
+    links[1].addEventListener("click", updateUnits.bind({}, "metric"));
+  }
+
+  function updateUnits(newUnits) {
+    units = newUnits;
+    localStorage.setItem("units", newUnits);
+    updateAllTempDisplays();
   }
 
   function resetTemps() {
@@ -192,28 +204,50 @@
       "</span>";
     element.classList.add("temp-display");
 
-    return {
-      element,
-      updateValue: updateTempValue.bind({}, element),
-      updateCaption: updateTempCaption.bind({}, element)
+    var displayComponent = {
+      element
     };
+
+    displayComponent.updateValue = updateTempValue.bind(displayComponent);
+    displayComponent.updateCaption = updateTempCaption.bind(displayComponent);
+
+    return displayComponent;
   }
 
-  function updateTempValue(element, value) {
-    if (element && element.children[0]) {
+  function updateTempValue(value) {
+    if (this.element && this.element.children[0]) {
       if (parseFloat(value)) {
-        if (units === "metric") {
-          value = value - 32 * 5 / 9;
-        }
-        value = value.toFixed(1);
+        this.element.children[0].dataset.value = value;
+        value = getValueForDisplay(value, units);
       }
-      element.children[0].innerHTML = value;
+      this.element.children[0].innerHTML = value;
     }
   }
 
-  function updateTempCaption(element, caption) {
-    if (element && element.children[2]) {
-      element.children[2].innerHTML = caption;
+  function updateAllTempDisplays() {
+    document.querySelectorAll("span.temp-value").forEach(function(valueElement) {
+      var value = parseFloat(valueElement.dataset.value);
+      if (value) {
+        valueElement.innerHTML = getValueForDisplay(value, units);
+      }
+    });
+    document.querySelectorAll("span.temp-units").forEach(function(unitsElement) {
+      unitsElement.classList.remove("us");
+      unitsElement.classList.remove("metric");
+      unitsElement.classList.add(units);
+    });
+  }
+
+  function getValueForDisplay(value, units) {
+    if (units === "metric") {
+      value = (value - 32) * 5 / 9;
+    }
+    return value.toFixed(1);
+  }
+
+  function updateTempCaption(caption) {
+    if (this.element && this.element.children[2]) {
+      this.element.children[2].innerHTML = caption;
     }
   }
 
@@ -233,9 +267,11 @@
   }
 
   document.addEventListener("DOMContentLoaded", function(event) {
+    units = localStorage.getItem("units") || "us";
     var stationId = localStorage.getItem("stationId") || "9414290";
     var stationName = localStorage.getItem("stationName") || "San Francisco, CA";
 
+    updateUnitLinks();
     updateStationLink(stationId);
     setInitialStationChoice(stationId, stationName);
 
