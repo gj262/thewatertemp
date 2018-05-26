@@ -1,5 +1,6 @@
 (function() {
-  var stationId = "9414290";
+  var stationId = localStorage.getItem("stationId") || "9414290";
+  var stationName = localStorage.getItem("stationName") || "San Francisco, CA";
   var stations;
   var latestTemp;
   var twentyFourHoursTempRange;
@@ -13,13 +14,27 @@
     );
   }
 
+  function chooseAStation() {
+    stationId = stations[this.selectedIndex].id;
+    localStorage.setItem("stationId", stationId);
+    stationName = stations[this.selectedIndex].name;
+    localStorage.setItem("stationName", stationName);
+    updateStationLink(stationId);
+    getChoosenStationData(stationId);
+  }
+
   function addStationChoiceHandler() {
     var select = document.getElementById("choose-station");
-    select.addEventListener("change", function() {
-      stationId = stations[this.selectedIndex].id;
-      updateStationLink(stationId);
-      getStationData(stationId);
-    });
+    select.addEventListener("change", chooseAStation);
+  }
+
+  function setInitialStationChoice(stationId, stationName) {
+    var select = document.getElementById("choose-station");
+    var opt = document.createElement("option");
+    opt.value = stationId;
+    opt.text = stationName;
+    opt.setAttribute("selected", true);
+    select.add(opt);
   }
 
   function gotStations(selectedStationId) {
@@ -36,6 +51,7 @@
         return a.name.localeCompare(b.name);
       });
       var select = document.getElementById("choose-station");
+      select.remove(0);
       stations.forEach(function(station) {
         var opt = document.createElement("option");
         opt.value = station.id;
@@ -58,7 +74,8 @@
     );
   }
 
-  function getStationData(stationId) {
+  function getChoosenStationData(stationId) {
+    latestTemp.updateValue("--.-");
     var getCurrentTemp = new XMLHttpRequest();
     getCurrentTemp.addEventListener("load", function() {
       gotCurrentTemp.bind(this)(latestTemp);
@@ -66,12 +83,27 @@
     getCurrentTemp.open("GET", getBaseDataURL(stationId) + "&date=latest");
     getCurrentTemp.send();
 
+    twentyFourHoursTempRange.min.updateValue("--.-");
+    twentyFourHoursTempRange.avg.updateValue("--.-");
+    twentyFourHoursTempRange.max.updateValue("--.-");
     var get24Hours = new XMLHttpRequest();
     get24Hours.addEventListener("load", function() {
       gotTempRange.bind(this)(twentyFourHoursTempRange);
     });
     get24Hours.open("GET", getBaseDataURL(stationId) + "&range=24");
     get24Hours.send();
+  }
+
+  function getAllStations() {
+    var getStations = new XMLHttpRequest();
+    getStations.addEventListener("load", function() {
+      gotStations.bind(this)(stationId);
+    });
+    getStations.open(
+      "GET",
+      "http://tidesandcurrents.noaa.gov/mdapi/v0.6/webapi/stations.json?type=watertemp"
+    );
+    getStations.send();
   }
 
   function gotCurrentTemp(tempDisplayComponent) {
@@ -182,21 +214,13 @@
 
   document.addEventListener("DOMContentLoaded", function(event) {
     updateStationLink(stationId);
+    setInitialStationChoice(stationId, stationName);
     addStationChoiceHandler();
 
     latestTemp = createTempDisplayComponent("latest-temp");
     twentyFourHoursTempRange = createTempRangeComponent("24-hours");
 
-    getStationData(stationId);
-
-    var getStations = new XMLHttpRequest();
-    getStations.addEventListener("load", function() {
-      gotStations.bind(this)(stationId);
-    });
-    getStations.open(
-      "GET",
-      "http://tidesandcurrents.noaa.gov/mdapi/v0.6/webapi/stations.json?type=watertemp"
-    );
-    getStations.send();
+    getChoosenStationData(stationId);
+    getAllStations();
   });
 })();
