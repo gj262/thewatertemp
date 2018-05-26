@@ -1,34 +1,13 @@
 (function() {
-  var stationId = localStorage.getItem("stationId") || "9414290";
-  var stationName = localStorage.getItem("stationName") || "San Francisco, CA";
   var units = "us";
 
   var stations;
   var latestTemp;
   var twentyFourHoursTempRange;
 
-  function updateStationLink(stationId) {
-    var element = document.getElementById("station-link");
-    element.innerHTML = "Station: " + stationId;
-    element.setAttribute(
-      "href",
-      "https://tidesandcurrents.noaa.gov/stationhome.html?id=" + stationId
-    );
-  }
-
-  function chooseAStation() {
-    stationId = stations[this.selectedIndex].id;
-    localStorage.setItem("stationId", stationId);
-    stationName = stations[this.selectedIndex].name;
-    localStorage.setItem("stationName", stationName);
-    updateStationLink(stationId);
-    clearStationError();
-    getChoosenStationData(stationId);
-  }
-
   function addStationChoiceHandler() {
     var select = document.getElementById("choose-station");
-    select.addEventListener("change", chooseAStation);
+    select.addEventListener("change", stationChoosen);
   }
 
   function setInitialStationChoice(stationId, stationName) {
@@ -54,7 +33,7 @@
         return a.name.localeCompare(b.name);
       });
       var select = document.getElementById("choose-station");
-      select.remove(0);
+      select.remove(0); // remove initial option (if any)
       stations.forEach(function(station) {
         var opt = document.createElement("option");
         opt.value = station.id;
@@ -69,7 +48,29 @@
     }
   }
 
-  function handleStationError(message) {
+  function stationChoosen() {
+    var stationId = stations[this.selectedIndex].id;
+    localStorage.setItem("stationId", stationId);
+    var stationName = stations[this.selectedIndex].name;
+    localStorage.setItem("stationName", stationName);
+
+    updateStationLink(stationId);
+    clearStationError();
+
+    resetTemps();
+    getChoosenStationData(stationId);
+  }
+
+  function updateStationLink(stationId) {
+    var element = document.getElementById("station-link");
+    element.innerHTML = "Station: " + stationId;
+    element.setAttribute(
+      "href",
+      "https://tidesandcurrents.noaa.gov/stationhome.html?id=" + stationId
+    );
+  }
+
+  function setStationError(message) {
     var element = document.getElementById("station-error");
     element.innerHTML = message;
     element.classList.remove("no-error");
@@ -81,16 +82,14 @@
     element.classList.add("no-error");
   }
 
-  function getBaseDataURL(stationId) {
-    return (
-      "https://tidesandcurrents.noaa.gov/api/datagetter?station=" +
-      stationId +
-      "&product=water_temperature&format=json&units=english&time_zone=lst_ldt"
-    );
+  function resetTemps() {
+    latestTemp.updateValue("--.-");
+    twentyFourHoursTempRange.min.updateValue("--.-");
+    twentyFourHoursTempRange.avg.updateValue("--.-");
+    twentyFourHoursTempRange.max.updateValue("--.-");
   }
 
   function getChoosenStationData(stationId) {
-    latestTemp.updateValue("--.-");
     var getCurrentTemp = new XMLHttpRequest();
     getCurrentTemp.addEventListener("load", function() {
       gotCurrentTemp.bind(this)(latestTemp);
@@ -98,9 +97,6 @@
     getCurrentTemp.open("GET", getBaseDataURL(stationId) + "&date=latest");
     getCurrentTemp.send();
 
-    twentyFourHoursTempRange.min.updateValue("--.-");
-    twentyFourHoursTempRange.avg.updateValue("--.-");
-    twentyFourHoursTempRange.max.updateValue("--.-");
     var get24Hours = new XMLHttpRequest();
     get24Hours.addEventListener("load", function() {
       gotTempRange.bind(this)(twentyFourHoursTempRange);
@@ -109,16 +105,24 @@
     get24Hours.send();
   }
 
-  function getAllStations() {
+  function getAllStations(selectedStationId) {
     var getStations = new XMLHttpRequest();
     getStations.addEventListener("load", function() {
-      gotStations.bind(this)(stationId);
+      gotStations.bind(this)(selectedStationId);
     });
     getStations.open(
       "GET",
       "http://tidesandcurrents.noaa.gov/mdapi/v0.6/webapi/stations.json?type=watertemp"
     );
     getStations.send();
+  }
+
+  function getBaseDataURL(stationId) {
+    return (
+      "https://tidesandcurrents.noaa.gov/api/datagetter?station=" +
+      stationId +
+      "&product=water_temperature&format=json&units=english&time_zone=lst_ldt"
+    );
   }
 
   function gotCurrentTemp(tempDisplayComponent) {
@@ -128,7 +132,7 @@
       var payload = this.responseText;
       payload = JSON.parse(payload);
       if (payload.error && payload.error.message) {
-        handleStationError(payload.error.message);
+        setStationError(payload.error.message);
       } else {
         value = parseFloat(payload.data[0].v);
         time = payload.data[0].t;
@@ -240,6 +244,10 @@
   }
 
   document.addEventListener("DOMContentLoaded", function(event) {
+    var stationId = localStorage.getItem("stationId") || "9414290";
+    var stationName =
+      localStorage.getItem("stationName") || "San Francisco, CA";
+
     updateStationLink(stationId);
     setInitialStationChoice(stationId, stationName);
     addStationChoiceHandler();
@@ -248,6 +256,6 @@
     twentyFourHoursTempRange = createTempRangeComponent("24-hours");
 
     getChoosenStationData(stationId);
-    getAllStations();
+    getAllStations(stationId);
   });
 })();
