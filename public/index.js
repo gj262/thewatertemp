@@ -9,7 +9,7 @@
     );
   }
 
-  function gotCurrentTemp() {
+  function gotCurrentTemp(tempDisplayComponent) {
     var value;
     var time;
     try {
@@ -21,12 +21,12 @@
       console.log(e);
     }
     if (value && time) {
-      updateTempValue("latest-temp", value);
-      updateTempCaption("latest-temp", time);
+      tempDisplayComponent.updateValue(value);
+      tempDisplayComponent.updateCaption(time);
     }
   }
 
-  function got24Hours() {
+  function gotTempRange(rangeComponent) {
     var min;
     var avg;
     var max;
@@ -53,36 +53,84 @@
       console.log(e);
     }
     if (min) {
-      updateTempValue("24-hours-min", min.toFixed(1));
+      rangeComponent.min.updateValue(min.toFixed(1));
     }
     if (avg) {
-      updateTempValue("24-hours-avg", avg.toFixed(1));
+      rangeComponent.avg.updateValue(avg.toFixed(1));
     }
     if (max) {
-      updateTempValue("24-hours-max", max.toFixed(1));
+      rangeComponent.max.updateValue(max.toFixed(1));
     }
   }
 
-  function updateTempValue(id, value) {
+  function createTempDisplayComponent(id, caption) {
     var element = document.getElementById(id);
+    if (!element) {
+      throw new Error("expected to find " + id);
+    }
+    element.innerHTML =
+      "<span class=\"temp-value\">--.-</span><span class=\"temp-units us\"></span><span class=\"temp-caption\">" +
+      (caption || "--") +
+      "</span>";
+    element.classList.add("temp-display");
+
+    return {
+      element,
+      updateValue: updateTempValue.bind({}, element),
+      updateCaption: updateTempCaption.bind({}, element)
+    };
+  }
+
+  function updateTempValue(element, value) {
     if (element && element.children[0]) {
       element.children[0].innerHTML = value;
     }
   }
 
-  function updateTempCaption(id, caption) {
-    var element = document.getElementById(id);
+  function updateTempCaption(element, caption) {
     if (element && element.children[2]) {
       element.children[2].innerHTML = caption;
     }
   }
-  var getCurrentTemp = new XMLHttpRequest();
-  getCurrentTemp.addEventListener("load", gotCurrentTemp);
-  getCurrentTemp.open("GET", getBaseDataURL(stationId) + "&date=latest");
-  getCurrentTemp.send();
 
-  var get24Hours = new XMLHttpRequest();
-  get24Hours.addEventListener("load", got24Hours);
-  get24Hours.open("GET", getBaseDataURL(stationId) + "&range=24");
-  get24Hours.send();
+  function createTempRangeComponent(id) {
+    var element = document.getElementById(id);
+    if (!element) {
+      throw new Error("expected to find " + id);
+    }
+    element.innerHTML =
+      "<div id=\"" +
+      id +
+      "-min\"></div><div id=\"" +
+      id +
+      "-avg\"></div><div id=\"" +
+      id +
+      "-max\"></div>";
+    element.classList.add("temp-range");
+
+    return {
+      min: createTempDisplayComponent(id + "-min", "Min"),
+      avg: createTempDisplayComponent(id + "-avg", "Avg"),
+      max: createTempDisplayComponent(id + "-max", "Max")
+    };
+  }
+
+  document.addEventListener("DOMContentLoaded", function(event) {
+    var latestTemp = createTempDisplayComponent("latest-temp");
+    var twentyFourHoursTempRange = createTempRangeComponent("24-hours");
+
+    var getCurrentTemp = new XMLHttpRequest();
+    getCurrentTemp.addEventListener("load", function() {
+      gotCurrentTemp.bind(this)(latestTemp);
+    });
+    getCurrentTemp.open("GET", getBaseDataURL(stationId) + "&date=latest");
+    getCurrentTemp.send();
+
+    var get24Hours = new XMLHttpRequest();
+    get24Hours.addEventListener("load", function() {
+      gotTempRange.bind(this)(twentyFourHoursTempRange);
+    });
+    get24Hours.open("GET", getBaseDataURL(stationId) + "&range=24");
+    get24Hours.send();
+  });
 })();
