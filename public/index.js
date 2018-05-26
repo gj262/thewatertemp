@@ -1,17 +1,28 @@
 (function() {
   var stationId = "9414290";
+  var stations;
+  var latestTemp;
+  var twentyFourHoursTempRange;
 
   function updateStationLink(stationId) {
     var element = document.getElementById("station-link");
     element.innerHTML = "Station: " + stationId;
     element.setAttribute(
       "href",
-      "https://tidesandcurrents.noaa.gov/physocean.html?id=" + stationId
+      "https://tidesandcurrents.noaa.gov/stationhome.html?id=" + stationId
     );
   }
 
+  function addStationChoiceHandler() {
+    var select = document.getElementById("choose-station");
+    select.addEventListener("change", function() {
+      stationId = stations[this.selectedIndex].id;
+      updateStationLink(stationId);
+      getStationData(stationId);
+    });
+  }
+
   function gotStations(selectedStationId) {
-    var stations;
     try {
       var payload = this.responseText;
       payload = JSON.parse(payload);
@@ -45,6 +56,22 @@
       stationId +
       "&product=water_temperature&format=json&units=english&time_zone=lst_ldt"
     );
+  }
+
+  function getStationData(stationId) {
+    var getCurrentTemp = new XMLHttpRequest();
+    getCurrentTemp.addEventListener("load", function() {
+      gotCurrentTemp.bind(this)(latestTemp);
+    });
+    getCurrentTemp.open("GET", getBaseDataURL(stationId) + "&date=latest");
+    getCurrentTemp.send();
+
+    var get24Hours = new XMLHttpRequest();
+    get24Hours.addEventListener("load", function() {
+      gotTempRange.bind(this)(twentyFourHoursTempRange);
+    });
+    get24Hours.open("GET", getBaseDataURL(stationId) + "&range=24");
+    get24Hours.send();
   }
 
   function gotCurrentTemp(tempDisplayComponent) {
@@ -155,23 +182,12 @@
 
   document.addEventListener("DOMContentLoaded", function(event) {
     updateStationLink(stationId);
+    addStationChoiceHandler();
 
-    var latestTemp = createTempDisplayComponent("latest-temp");
-    var twentyFourHoursTempRange = createTempRangeComponent("24-hours");
+    latestTemp = createTempDisplayComponent("latest-temp");
+    twentyFourHoursTempRange = createTempRangeComponent("24-hours");
 
-    var getCurrentTemp = new XMLHttpRequest();
-    getCurrentTemp.addEventListener("load", function() {
-      gotCurrentTemp.bind(this)(latestTemp);
-    });
-    getCurrentTemp.open("GET", getBaseDataURL(stationId) + "&date=latest");
-    getCurrentTemp.send();
-
-    var get24Hours = new XMLHttpRequest();
-    get24Hours.addEventListener("load", function() {
-      gotTempRange.bind(this)(twentyFourHoursTempRange);
-    });
-    get24Hours.open("GET", getBaseDataURL(stationId) + "&range=24");
-    get24Hours.send();
+    getStationData(stationId);
 
     var getStations = new XMLHttpRequest();
     getStations.addEventListener("load", function() {
