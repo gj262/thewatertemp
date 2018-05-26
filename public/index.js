@@ -1,6 +1,8 @@
 (function() {
   var stationId = localStorage.getItem("stationId") || "9414290";
   var stationName = localStorage.getItem("stationName") || "San Francisco, CA";
+  var units = "us";
+
   var stations;
   var latestTemp;
   var twentyFourHoursTempRange;
@@ -112,7 +114,7 @@
     try {
       var payload = this.responseText;
       payload = JSON.parse(payload);
-      value = parseFloat(payload.data[0].v).toFixed(1);
+      value = parseFloat(payload.data[0].v);
       time = payload.data[0].t;
     } catch (e) {
       console.log(e);
@@ -150,13 +152,13 @@
       console.log(e);
     }
     if (min) {
-      rangeComponent.min.updateValue(min.toFixed(1));
+      rangeComponent.min.updateValue(min);
     }
     if (avg) {
-      rangeComponent.avg.updateValue(avg.toFixed(1));
+      rangeComponent.avg.updateValue(avg);
     }
     if (max) {
-      rangeComponent.max.updateValue(max.toFixed(1));
+      rangeComponent.max.updateValue(max);
     }
   }
 
@@ -166,7 +168,9 @@
       throw new Error("expected to find " + id);
     }
     element.innerHTML =
-      "<span class=\"temp-value\">--.-</span><span class=\"temp-units us\"></span><span class=\"temp-caption\">" +
+      "<span class=\"temp-value\">--.-</span><span class=\"temp-units " +
+      units +
+      "\"></span><span class=\"temp-caption\">" +
       (caption || "--") +
       "</span>";
     element.classList.add("temp-display");
@@ -180,6 +184,12 @@
 
   function updateTempValue(element, value) {
     if (element && element.children[0]) {
+      if (parseFloat(value)) {
+        if (units === "metric") {
+          value = value - 32 * 5 / 9;
+        }
+        value = value.toFixed(1);
+      }
       element.children[0].innerHTML = value;
     }
   }
