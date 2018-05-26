@@ -64,10 +64,7 @@
   function updateStationLink(stationId) {
     var element = document.getElementById("station-link");
     element.innerHTML = "Station: " + stationId;
-    element.setAttribute(
-      "href",
-      "https://tidesandcurrents.noaa.gov/stationhome.html?id=" + stationId
-    );
+    element.setAttribute("href", "https://tidesandcurrents.noaa.gov/stationhome.html?id=" + stationId);
   }
 
   function setStationError(message) {
@@ -110,10 +107,7 @@
     getStations.addEventListener("load", function() {
       gotStations.bind(this)(selectedStationId);
     });
-    getStations.open(
-      "GET",
-      "http://tidesandcurrents.noaa.gov/mdapi/v0.6/webapi/stations.json?type=watertemp"
-    );
+    getStations.open("GET", "http://tidesandcurrents.noaa.gov/mdapi/v0.6/webapi/stations.json?type=watertemp");
     getStations.send();
   }
 
@@ -226,14 +220,7 @@
     if (!element) {
       throw new Error("expected to find " + id);
     }
-    element.innerHTML =
-      "<div id=\"" +
-      id +
-      "-min\"></div><div id=\"" +
-      id +
-      "-avg\"></div><div id=\"" +
-      id +
-      "-max\"></div>";
+    element.innerHTML = "<div id=\"" + id + "-min\"></div><div id=\"" + id + "-avg\"></div><div id=\"" + id + "-max\"></div>";
     element.classList.add("temp-range");
 
     return {
@@ -245,8 +232,7 @@
 
   document.addEventListener("DOMContentLoaded", function(event) {
     var stationId = localStorage.getItem("stationId") || "9414290";
-    var stationName =
-      localStorage.getItem("stationName") || "San Francisco, CA";
+    var stationName = localStorage.getItem("stationName") || "San Francisco, CA";
 
     updateStationLink(stationId);
     setInitialStationChoice(stationId, stationName);
