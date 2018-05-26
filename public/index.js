@@ -1,6 +1,44 @@
 (function() {
   var stationId = "9414290";
 
+  function updateStationLink(stationId) {
+    var element = document.getElementById("station-link");
+    element.innerHTML = "Station: " + stationId;
+    element.setAttribute(
+      "href",
+      "https://tidesandcurrents.noaa.gov/physocean.html?id=" + stationId
+    );
+  }
+
+  function gotStations(selectedStationId) {
+    var stations;
+    try {
+      var payload = this.responseText;
+      payload = JSON.parse(payload);
+      stations = payload.stations.map(function(station) {
+        return {
+          id: station.id,
+          name: station.name + (station.state ? ", " + station.state : "")
+        };
+      });
+      stations = stations.sort(function(a, b) {
+        return a.name.localeCompare(b.name);
+      });
+      var select = document.getElementById("choose-station");
+      stations.forEach(function(station) {
+        var opt = document.createElement("option");
+        opt.value = station.id;
+        opt.text = station.name;
+        if (selectedStationId === station.id) {
+          opt.setAttribute("selected", true);
+        }
+        select.add(opt);
+      });
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
   function getBaseDataURL(stationId) {
     return (
       "https://tidesandcurrents.noaa.gov/api/datagetter?station=" +
@@ -116,6 +154,8 @@
   }
 
   document.addEventListener("DOMContentLoaded", function(event) {
+    updateStationLink(stationId);
+
     var latestTemp = createTempDisplayComponent("latest-temp");
     var twentyFourHoursTempRange = createTempRangeComponent("24-hours");
 
@@ -132,5 +172,15 @@
     });
     get24Hours.open("GET", getBaseDataURL(stationId) + "&range=24");
     get24Hours.send();
+
+    var getStations = new XMLHttpRequest();
+    getStations.addEventListener("load", function() {
+      gotStations.bind(this)(stationId);
+    });
+    getStations.open(
+      "GET",
+      "http://tidesandcurrents.noaa.gov/mdapi/v0.6/webapi/stations.json?type=watertemp"
+    );
+    getStations.send();
   });
 })();

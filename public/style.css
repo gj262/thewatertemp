@@ -1,3 +1,7 @@
+.station-link {
+  display: block;
+}
+
 .temp-range > .temp-display {
   width: 30vw;
   display: inline-block;
