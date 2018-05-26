@@ -11,15 +11,18 @@
 
   function gotCurrentTemp() {
     var value;
+    var time;
     try {
       var payload = this.responseText;
       payload = JSON.parse(payload);
       value = parseFloat(payload.data[0].v).toFixed(1);
+      time = payload.data[0].t;
     } catch (e) {
       console.log(e);
     }
-    if (value) {
-      updateTemp("latest-temp", value);
+    if (value && time) {
+      updateTempValue("latest-temp", value);
+      updateTempCaption("latest-temp", time);
     }
   }
 
@@ -50,23 +53,29 @@
       console.log(e);
     }
     if (min) {
-      updateTemp("24-hours-min", min.toFixed(1));
+      updateTempValue("24-hours-min", min.toFixed(1));
     }
     if (avg) {
-      updateTemp("24-hours-avg", avg.toFixed(1));
+      updateTempValue("24-hours-avg", avg.toFixed(1));
     }
     if (max) {
-      updateTemp("24-hours-max", max.toFixed(1));
+      updateTempValue("24-hours-max", max.toFixed(1));
     }
   }
 
-  function updateTemp(id, value) {
+  function updateTempValue(id, value) {
     var element = document.getElementById(id);
     if (element && element.children[0]) {
       element.children[0].innerHTML = value;
     }
   }
 
+  function updateTempCaption(id, caption) {
+    var element = document.getElementById(id);
+    if (element && element.children[2]) {
+      element.children[2].innerHTML = caption;
+    }
+  }
   var getCurrentTemp = new XMLHttpRequest();
   getCurrentTemp.addEventListener("load", gotCurrentTemp);
   getCurrentTemp.open("GET", getBaseDataURL(stationId) + "&date=latest");
