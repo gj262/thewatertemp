@@ -22,6 +22,7 @@
     stationName = stations[this.selectedIndex].name;
     localStorage.setItem("stationName", stationName);
     updateStationLink(stationId);
+    clearStationError();
     getChoosenStationData(stationId);
   }
 
@@ -66,6 +67,18 @@
     } catch (e) {
       console.log(e);
     }
+  }
+
+  function handleStationError(message) {
+    var element = document.getElementById("station-error");
+    element.innerHTML = message;
+    element.classList.remove("no-error");
+  }
+
+  function clearStationError() {
+    var element = document.getElementById("station-error");
+    element.innerHTML = "";
+    element.classList.add("no-error");
   }
 
   function getBaseDataURL(stationId) {
@@ -114,8 +127,12 @@
     try {
       var payload = this.responseText;
       payload = JSON.parse(payload);
-      value = parseFloat(payload.data[0].v);
-      time = payload.data[0].t;
+      if (payload.error && payload.error.message) {
+        handleStationError(payload.error.message);
+      } else {
+        value = parseFloat(payload.data[0].v);
+        time = payload.data[0].t;
+      }
     } catch (e) {
       console.log(e);
     }

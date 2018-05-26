@@ -6,6 +6,10 @@
   display: block;
 }
 
+.station-error.no-error {
+  display: none;
+}
+
 .temp-range > .temp-display {
   width: 30vw;
   display: inline-block;
