@@ -1,5 +1,7 @@
 (function() {
   var units;
+  var unitsReg;
+
   var latestTemp;
   var twentyFourHoursTempRange;
 
@@ -80,7 +82,7 @@
     element.classList.add("no-error");
   }
 
-  function updateUnitLinks(stationId) {
+  function attachToUnitLinks(stationId) {
     var element = document.getElementById("choose-unit");
     var links = element.querySelectorAll("a");
     links[0].addEventListener("click", updateUnits.bind({}, "us"));
@@ -90,7 +92,7 @@
   function updateUnits(newUnits) {
     units = newUnits;
     localStorage.setItem("units", newUnits);
-    updateAllTempDisplays();
+    unitsReg.invoke({ units: newUnits });
   }
 
   function resetTemps() {
@@ -205,37 +207,36 @@
     element.classList.add("temp-display");
 
     var displayComponent = {
-      element
+      element,
+      valueElement: element.children[0],
+      unitsElement: element.children[1],
+      captionElement: element.children[2]
     };
 
     displayComponent.updateValue = updateTempValue.bind(displayComponent);
     displayComponent.updateCaption = updateTempCaption.bind(displayComponent);
 
+    unitsReg.add(refreshTempWhenUnitsChange.bind(displayComponent));
+
     return displayComponent;
   }
 
   function updateTempValue(value) {
-    if (this.element && this.element.children[0]) {
-      if (parseFloat(value)) {
-        this.element.children[0].dataset.value = value;
-        value = getValueForDisplay(value, units);
-      }
-      this.element.children[0].innerHTML = value;
+    if (parseFloat(value)) {
+      this.valueElement.dataset.value = value;
+      value = getValueForDisplay(value, units);
     }
+    this.valueElement.innerHTML = value;
   }
 
-  function updateAllTempDisplays() {
-    document.querySelectorAll("span.temp-value").forEach(function(valueElement) {
-      var value = parseFloat(valueElement.dataset.value);
-      if (value) {
-        valueElement.innerHTML = getValueForDisplay(value, units);
-      }
-    });
-    document.querySelectorAll("span.temp-units").forEach(function(unitsElement) {
-      unitsElement.classList.remove("us");
-      unitsElement.classList.remove("metric");
-      unitsElement.classList.add(units);
-    });
+  function refreshTempWhenUnitsChange(payload) {
+    var value = parseFloat(this.valueElement.dataset.value);
+    if (value) {
+      this.valueElement.innerHTML = getValueForDisplay(value, payload.units);
+    }
+    this.unitsElement.classList.remove("us");
+    this.unitsElement.classList.remove("metric");
+    this.unitsElement.classList.add(payload.units);
   }
 
   function getValueForDisplay(value, units) {
@@ -246,9 +247,7 @@
   }
 
   function updateTempCaption(caption) {
-    if (this.element && this.element.children[2]) {
-      this.element.children[2].innerHTML = caption;
-    }
+    this.captionElement.innerHTML = caption;
   }
 
   function createTempRangeComponent(id) {
@@ -266,12 +265,30 @@
     };
   }
 
+  function Registry(name) {
+    var reg = { watchers: [] };
+
+    reg.add = function(toInvoke) {
+      reg.watchers.push(toInvoke);
+    };
+
+    reg.invoke = function(payload) {
+      reg.watchers.forEach(function(toInvoke) {
+        toInvoke(payload);
+      });
+    };
+
+    return reg;
+  }
+
   document.addEventListener("DOMContentLoaded", function(event) {
     units = localStorage.getItem("units") || "us";
     var stationId = localStorage.getItem("stationId") || "9414290";
     var stationName = localStorage.getItem("stationName") || "San Francisco, CA";
 
-    updateUnitLinks();
+    unitsReg = Registry("units");
+
+    attachToUnitLinks();
     updateStationLink(stationId);
     setInitialStationChoice(stationId, stationName);
 
