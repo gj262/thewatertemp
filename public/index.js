@@ -14,7 +14,7 @@
     select.add(opt);
   }
 
-  function gotStations(selectedStationId) {
+  function stationsFetched(selectedStationId) {
     try {
       var payload = this.responseText;
       payload = JSON.parse(payload);
@@ -62,7 +62,7 @@
 
     resetTempsReg.invoke();
 
-    getChoosenStationData(stationId);
+    fetchChoosenStationData(stationId);
   }
 
   function updateStationLink(stationId) {
@@ -95,26 +95,26 @@
     changeUnitsReg.invoke({ units: newUnits });
   }
 
-  function getChoosenStationData(stationId) {
+  function fetchChoosenStationData(stationId) {
     var getCurrentTemp = new XMLHttpRequest();
     getCurrentTemp.addEventListener("load", function() {
-      gotCurrentTemp.bind(this)(latestTemp);
+      latestTempFetched.bind(this)(latestTemp);
     });
     getCurrentTemp.open("GET", getBaseDataURL(stationId) + "&date=latest");
     getCurrentTemp.send();
 
     var get24Hours = new XMLHttpRequest();
     get24Hours.addEventListener("load", function() {
-      gotTempRange.bind(this)(twentyFourHoursTempRange);
+      rangeFetched.bind(this)(twentyFourHoursTempRange);
     });
     get24Hours.open("GET", getBaseDataURL(stationId) + "&range=24");
     get24Hours.send();
   }
 
-  function getAllStations(selectedStationId) {
+  function fetchAllStations(selectedStationId) {
     var getStations = new XMLHttpRequest();
     getStations.addEventListener("load", function() {
-      gotStations.bind(this)(selectedStationId);
+      stationsFetched.bind(this)(selectedStationId);
     });
     getStations.open("GET", "http://tidesandcurrents.noaa.gov/mdapi/v0.6/webapi/stations.json?type=watertemp");
     getStations.send();
@@ -128,7 +128,7 @@
     );
   }
 
-  function gotCurrentTemp(tempDisplayComponent) {
+  function latestTempFetched(tempDisplayComponent) {
     var value;
     var time;
     try {
@@ -149,7 +149,7 @@
     }
   }
 
-  function gotTempRange(rangeComponent) {
+  function rangeFetched(rangeComponent) {
     var min;
     var avg;
     var max;
@@ -230,12 +230,12 @@
 
     function updateValue(value) {
       this.value = value;
-      this.valueElement.innerHTML = this._getValueForDisplay();
+      this.valueElement.innerHTML = this.getValueForDisplay();
     }
 
     function refreshTempWhenUnitsChange(payload) {
       this.units = payload.units;
-      this.valueElement.innerHTML = this._getValueForDisplay();
+      this.valueElement.innerHTML = this.getValueForDisplay();
       this.unitsElement.classList.remove("us");
       this.unitsElement.classList.remove("metric");
       this.unitsElement.classList.add(this.units);
@@ -314,7 +314,7 @@
     latestTemp = TempDisplayComponent("latest-temp", null, units, null);
     twentyFourHoursTempRange = TempRangeComponent("24-hours", units);
 
-    getChoosenStationData(stationId);
-    getAllStations(stationId);
+    fetchChoosenStationData(stationId);
+    fetchAllStations(stationId);
   });
 })();
