@@ -188,85 +188,92 @@
     }
   }
 
-  function createTempDisplayComponent(id, caption) {
-    var element = document.getElementById(id);
-    if (!element) {
-      throw new Error("expected to find " + id);
+  function TempDisplayComponent(id, caption) {
+    function create(id, caption) {
+      var element = document.getElementById(id);
+      if (!element) {
+        throw new Error("expected to find " + id);
+      }
+      element.innerHTML =
+        "<span class=\"temp-value\">--.-</span><span class=\"temp-units " +
+        units +
+        "\"></span><span class=\"temp-caption\">" +
+        (caption || "--") +
+        "</span>";
+      element.classList.add("temp-display");
+
+      var displayComponent = {
+        caption,
+        element,
+        valueElement: element.children[0],
+        unitsElement: element.children[1],
+        captionElement: element.children[2]
+      };
+
+      displayComponent.updateValue = updateValue.bind(displayComponent);
+      displayComponent.updateCaption = updateCaption.bind(displayComponent);
+
+      changeUnitsReg.add(refreshTempWhenUnitsChange.bind(displayComponent));
+      resetTempsReg.add(resetTemp.bind(displayComponent));
+
+      return displayComponent;
     }
-    element.innerHTML =
-      "<span class=\"temp-value\">--.-</span><span class=\"temp-units " +
-      units +
-      "\"></span><span class=\"temp-caption\">" +
-      (caption || "--") +
-      "</span>";
-    element.classList.add("temp-display");
 
-    var displayComponent = {
-      caption,
-      element,
-      valueElement: element.children[0],
-      unitsElement: element.children[1],
-      captionElement: element.children[2]
-    };
+    return create(id, caption);
 
-    displayComponent.updateValue = updateTempValue.bind(displayComponent);
-    displayComponent.updateCaption = updateTempCaption.bind(displayComponent);
+    function updateValue(value) {
+      if (parseFloat(value)) {
+        this.valueElement.dataset.value = value;
+        value = getValueForDisplay(value, units);
+      }
+      this.valueElement.innerHTML = value;
+    }
 
-    changeUnitsReg.add(refreshTempWhenUnitsChange.bind(displayComponent));
-    resetTempsReg.add(resetTemp.bind(displayComponent));
+    function refreshTempWhenUnitsChange(payload) {
+      var value = parseFloat(this.valueElement.dataset.value);
+      if (value) {
+        this.valueElement.innerHTML = getValueForDisplay(value, payload.units);
+      }
+      this.unitsElement.classList.remove("us");
+      this.unitsElement.classList.remove("metric");
+      this.unitsElement.classList.add(payload.units);
+    }
 
-    return displayComponent;
+    function getValueForDisplay(value, units) {
+      if (units === "metric") {
+        value = (value - 32) * 5 / 9;
+      }
+      return value.toFixed(1);
+    }
+
+    function updateCaption(caption) {
+      this.captionElement.innerHTML = caption;
+    }
+
+    function resetTemp() {
+      this.valueElement.innerHTML = "--.-";
+      if (!this.caption) {
+        this.captionElement.innerHTML = "--";
+      }
+    }
   }
 
-  function updateTempValue(value) {
-    if (parseFloat(value)) {
-      this.valueElement.dataset.value = value;
-      value = getValueForDisplay(value, units);
+  function TempRangeComponent(id) {
+    function create(id) {
+      var element = document.getElementById(id);
+      if (!element) {
+        throw new Error("expected to find " + id);
+      }
+      element.innerHTML = "<div id=\"" + id + "-min\"></div><div id=\"" + id + "-avg\"></div><div id=\"" + id + "-max\"></div>";
+      element.classList.add("temp-range");
+
+      return {
+        min: TempDisplayComponent(id + "-min", "Min"),
+        avg: TempDisplayComponent(id + "-avg", "Avg"),
+        max: TempDisplayComponent(id + "-max", "Max")
+      };
     }
-    this.valueElement.innerHTML = value;
-  }
-
-  function refreshTempWhenUnitsChange(payload) {
-    var value = parseFloat(this.valueElement.dataset.value);
-    if (value) {
-      this.valueElement.innerHTML = getValueForDisplay(value, payload.units);
-    }
-    this.unitsElement.classList.remove("us");
-    this.unitsElement.classList.remove("metric");
-    this.unitsElement.classList.add(payload.units);
-  }
-
-  function getValueForDisplay(value, units) {
-    if (units === "metric") {
-      value = (value - 32) * 5 / 9;
-    }
-    return value.toFixed(1);
-  }
-
-  function updateTempCaption(caption) {
-    this.captionElement.innerHTML = caption;
-  }
-
-  function resetTemp() {
-    this.valueElement.innerHTML = "--.-";
-    if (!this.caption) {
-      this.captionElement.innerHTML = "--";
-    }
-  }
-
-  function createTempRangeComponent(id) {
-    var element = document.getElementById(id);
-    if (!element) {
-      throw new Error("expected to find " + id);
-    }
-    element.innerHTML = "<div id=\"" + id + "-min\"></div><div id=\"" + id + "-avg\"></div><div id=\"" + id + "-max\"></div>";
-    element.classList.add("temp-range");
-
-    return {
-      min: createTempDisplayComponent(id + "-min", "Min"),
-      avg: createTempDisplayComponent(id + "-avg", "Avg"),
-      max: createTempDisplayComponent(id + "-max", "Max")
-    };
+    return create(id);
   }
 
   function Registry(name) {
@@ -297,8 +304,8 @@
     updateStationLink(stationId);
     setInitialStationChoice(stationId, stationName);
 
-    latestTemp = createTempDisplayComponent("latest-temp");
-    twentyFourHoursTempRange = createTempRangeComponent("24-hours");
+    latestTemp = TempDisplayComponent("latest-temp");
+    twentyFourHoursTempRange = TempRangeComponent("24-hours");
 
     getChoosenStationData(stationId);
     getAllStations(stationId);
