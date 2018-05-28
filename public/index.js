@@ -1,6 +1,7 @@
 (function() {
   var units;
-  var unitsReg;
+  var changeUnitsReg;
+  var resetTempsReg;
 
   var latestTemp;
   var twentyFourHoursTempRange;
@@ -60,7 +61,8 @@
     updateStationLink(stationId);
     clearStationError();
 
-    resetTemps();
+    resetTempsReg.invoke();
+
     getChoosenStationData(stationId);
   }
 
@@ -92,14 +94,7 @@
   function updateUnits(newUnits) {
     units = newUnits;
     localStorage.setItem("units", newUnits);
-    unitsReg.invoke({ units: newUnits });
-  }
-
-  function resetTemps() {
-    latestTemp.updateValue("--.-");
-    twentyFourHoursTempRange.min.updateValue("--.-");
-    twentyFourHoursTempRange.avg.updateValue("--.-");
-    twentyFourHoursTempRange.max.updateValue("--.-");
+    changeUnitsReg.invoke({ units: newUnits });
   }
 
   function getChoosenStationData(stationId) {
@@ -207,6 +202,7 @@
     element.classList.add("temp-display");
 
     var displayComponent = {
+      caption,
       element,
       valueElement: element.children[0],
       unitsElement: element.children[1],
@@ -216,7 +212,8 @@
     displayComponent.updateValue = updateTempValue.bind(displayComponent);
     displayComponent.updateCaption = updateTempCaption.bind(displayComponent);
 
-    unitsReg.add(refreshTempWhenUnitsChange.bind(displayComponent));
+    changeUnitsReg.add(refreshTempWhenUnitsChange.bind(displayComponent));
+    resetTempsReg.add(resetTemp.bind(displayComponent));
 
     return displayComponent;
   }
@@ -248,6 +245,13 @@
 
   function updateTempCaption(caption) {
     this.captionElement.innerHTML = caption;
+  }
+
+  function resetTemp() {
+    this.valueElement.innerHTML = "--.-";
+    if (!this.caption) {
+      this.captionElement.innerHTML = "--";
+    }
   }
 
   function createTempRangeComponent(id) {
@@ -286,7 +290,8 @@
     var stationId = localStorage.getItem("stationId") || "9414290";
     var stationName = localStorage.getItem("stationName") || "San Francisco, CA";
 
-    unitsReg = Registry("units");
+    changeUnitsReg = Registry("change-units");
+    resetTempsReg = Registry("reset-temps");
 
     attachToUnitLinks();
     updateStationLink(stationId);
