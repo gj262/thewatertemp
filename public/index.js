@@ -1,9 +1,33 @@
+// Begin FFS IE
+
+// https://github.com/uxitten/polyfill/blob/master/string.polyfill.js
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/padStart
+if (!String.prototype.padStart) {
+  /* eslint no-extend-native: 0 */
+  String.prototype.padStart = function padStart(targetLength, padString) {
+    targetLength = targetLength >> 0; // truncate if number or convert non-number to 0;
+    padString = String(typeof padString !== "undefined" ? padString : " ");
+    if (this.length > targetLength) {
+      return String(this);
+    } else {
+      targetLength = targetLength - this.length;
+      if (targetLength > padString.length) {
+        padString += padString.repeat(targetLength / padString.length); // append to original to ensure we are longer than needed
+      }
+      return padString.slice(0, targetLength) + String(this);
+    }
+  };
+}
+
+// End FFS IE
+
 (function() {
   var changeUnitsReg;
   var resetTempsReg;
 
   var latestTemp;
   var twentyFourHoursTempRange;
+  var comparison;
 
   function setInitialStationChoice(stationId, stationName) {
     var select = document.getElementById("choose-station");
@@ -105,10 +129,12 @@
 
     var get24Hours = new XMLHttpRequest();
     get24Hours.addEventListener("load", function() {
-      rangeFetched.bind(this)(twentyFourHoursTempRange);
+      twentyFourHoursTempRange.displayData(getRangeFromResponse.bind(this)());
     });
     get24Hours.open("GET", getBaseDataURL(stationId) + "&range=24");
     get24Hours.send();
+
+    comparison.fetchData();
   }
 
   function fetchAllStations(selectedStationId) {
@@ -149,41 +175,16 @@
     }
   }
 
-  function rangeFetched(rangeComponent) {
-    var min;
-    var avg;
-    var max;
+  function getRangeFromResponse() {
+    var data;
     try {
       var payload = this.responseText;
       payload = JSON.parse(payload);
-      var sum = 0;
-      payload.data.forEach(function(datum) {
-        var value = parseFloat(datum.v);
-        if (value) {
-          sum = sum + value;
-          if (!min || value < min) {
-            min = value;
-          }
-          if (!max || value > max) {
-            max = value;
-          }
-        }
-      });
-      if (sum !== 0) {
-        avg = sum / payload.data.length;
-      }
+      data = payload.data;
     } catch (e) {
       console.log(e);
     }
-    if (min) {
-      rangeComponent.min.updateValue(min);
-    }
-    if (avg) {
-      rangeComponent.avg.updateValue(avg);
-    }
-    if (max) {
-      rangeComponent.max.updateValue(max);
-    }
+    return data;
   }
 
   function TempDisplayComponent(id, value, units, caption) {
@@ -274,13 +275,132 @@
       element.innerHTML = "<div id=\"" + id + "-min\"></div><div id=\"" + id + "-avg\"></div><div id=\"" + id + "-max\"></div>";
       element.classList.add("temp-range");
 
-      return {
+      var self = {
         min: TempDisplayComponent(id + "-min", null, units, "Min"),
         avg: TempDisplayComponent(id + "-avg", null, units, "Avg"),
         max: TempDisplayComponent(id + "-max", null, units, "Max")
       };
+
+      self.displayData = displayData.bind(self);
+
+      return self;
     }
+
     return create(id, units);
+
+    function displayData(data) {
+      var min;
+      var avg;
+      var max;
+      var sum = 0;
+      data.forEach(function(datum) {
+        var value = parseFloat(datum.v);
+        if (value) {
+          sum = sum + value;
+          if (!min || value < min) {
+            min = value;
+          }
+          if (!max || value > max) {
+            max = value;
+          }
+        }
+      });
+      if (sum !== 0) {
+        avg = sum / data.length;
+      }
+      if (min) {
+        this.min.updateValue(min);
+      }
+      if (avg) {
+        this.avg.updateValue(avg);
+      }
+      if (max) {
+        this.max.updateValue(max);
+      }
+    }
+  }
+
+  function Comparison(id, stationId, units) {
+    function create(id, units) {
+      var element = document.getElementById(id);
+      if (!element) {
+        throw new Error("expected to find " + id);
+      }
+
+      var nowMS = Date.now();
+
+      var ranges = [];
+      for (var day = 1; day <= 7; day++) {
+        var dayMS = nowMS - day * 24 * 60 * 60 * 1000;
+        var dayDate = new Date(dayMS);
+        var dayOfWeek = dayDate.toLocaleString("en-us", { weekday: "long" });
+        var titleElement = document.createElement("h2");
+        titleElement.innerHTML = dayOfWeek;
+        element.appendChild(titleElement);
+        var rangeElement = document.createElement("div");
+        rangeElement.id = "comparison-range-" + dayOfWeek;
+        element.appendChild(rangeElement);
+        ranges.push({
+          component: TempRangeComponent(rangeElement.id, units),
+          dateStr:
+            dayDate.getFullYear() +
+            "-" +
+            (dayDate.getMonth() + 1 + "").padStart(2, "0") +
+            "-" +
+            (dayDate.getDate() + "").padStart(2, "0")
+        });
+      }
+
+      var beginMS = nowMS - 7 * 24 * 60 * 60 * 1000;
+      var beginDate = new Date(beginMS);
+
+      var comparison = {
+        element,
+        stationId,
+        units,
+        beginDate,
+        ranges
+      };
+
+      comparison.fetchData = fetchData.bind(comparison);
+      comparison.fetched = fetched.bind(comparison);
+
+      return comparison;
+    }
+
+    return create(id, units);
+
+    function fetchData() {
+      var fetch = new XMLHttpRequest();
+      var self = this;
+      fetch.addEventListener("load", function() {
+        self.fetched(this);
+      });
+      var beginStr =
+        this.beginDate.getFullYear() +
+        (this.beginDate.getMonth() + 1 + "").padStart(2, "0") +
+        (this.beginDate.getDate() + "").padStart(2, "0");
+      fetch.open("GET", getBaseDataURL(this.stationId) + "&begin_date=" + beginStr + "&range=168");
+      fetch.send();
+    }
+
+    function fetched(response) {
+      var data;
+      try {
+        var payload = response.responseText;
+        payload = JSON.parse(payload);
+        data = payload.data;
+      } catch (e) {
+        console.log(e);
+      }
+
+      this.ranges.forEach(function(range) {
+        var rangeData = data.filter(function(datum) {
+          return datum.t.indexOf(range.dateStr) === 0;
+        });
+        range.component.displayData(rangeData);
+      });
+    }
   }
 
   function Registry(name) {
@@ -313,6 +433,7 @@
 
     latestTemp = TempDisplayComponent("latest-temp", null, units, null);
     twentyFourHoursTempRange = TempRangeComponent("24-hours", units);
+    comparison = Comparison("comparison", stationId, units);
 
     fetchChoosenStationData(stationId);
     fetchAllStations(stationId);
