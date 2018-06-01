@@ -134,7 +134,7 @@ if (!String.prototype.padStart) {
     get24Hours.open("GET", getBaseDataURL(stationId) + "&range=24");
     get24Hours.send();
 
-    comparison.fetchData();
+    comparison.fetchData(stationId);
   }
 
   function fetchAllStations(selectedStationId) {
@@ -188,7 +188,11 @@ if (!String.prototype.padStart) {
   }
 
   function TempDisplayComponent(id, value, units, caption) {
-    function create(id, value, units, caption) {
+    var self;
+    create();
+    return self;
+
+    function create() {
       var element = document.getElementById(id);
       if (!element) {
         throw new Error("expected to find " + id);
@@ -207,7 +211,7 @@ if (!String.prototype.padStart) {
         "</span>";
       element.classList.add("temp-display");
 
-      var displayComponent = {
+      self = {
         value,
         units,
         caption,
@@ -217,17 +221,13 @@ if (!String.prototype.padStart) {
         captionElement: element.children[2]
       };
 
-      displayComponent.updateValue = updateValue.bind(displayComponent);
-      displayComponent.updateCaption = updateCaption.bind(displayComponent);
-      displayComponent.getValueForDisplay = getValueForDisplay.bind(displayComponent);
+      self.updateValue = updateValue.bind(self);
+      self.updateCaption = updateCaption.bind(self);
+      self.getValueForDisplay = getValueForDisplay.bind(self);
 
-      changeUnitsReg.add(refreshTempWhenUnitsChange.bind(displayComponent));
-      resetTempsReg.add(resetTemp.bind(displayComponent));
-
-      return displayComponent;
+      changeUnitsReg.add(refreshTempWhenUnitsChange.bind(self));
+      resetTempsReg.add(resetTemp.bind(self));
     }
-
-    return create(id, value, units, caption);
 
     function updateValue(value) {
       this.value = value;
@@ -267,7 +267,11 @@ if (!String.prototype.padStart) {
   }
 
   function TempRangeComponent(id, units) {
-    function create(id, units) {
+    var self;
+    create();
+    return self;
+
+    function create() {
       var element = document.getElementById(id);
       if (!element) {
         throw new Error("expected to find " + id);
@@ -275,18 +279,14 @@ if (!String.prototype.padStart) {
       element.innerHTML = "<div id=\"" + id + "-min\"></div><div id=\"" + id + "-avg\"></div><div id=\"" + id + "-max\"></div>";
       element.classList.add("temp-range");
 
-      var self = {
+      self = {
         min: TempDisplayComponent(id + "-min", null, units, "Min"),
         avg: TempDisplayComponent(id + "-avg", null, units, "Avg"),
         max: TempDisplayComponent(id + "-max", null, units, "Max")
       };
 
       self.displayData = displayData.bind(self);
-
-      return self;
     }
-
-    return create(id, units);
 
     function displayData(data) {
       var min;
@@ -320,8 +320,12 @@ if (!String.prototype.padStart) {
     }
   }
 
-  function Comparison(id, stationId, units) {
-    function create(id, units) {
+  function Comparison(id, units) {
+    var self;
+    create();
+    return self;
+
+    function create() {
       var element = document.getElementById(id);
       if (!element) {
         throw new Error("expected to find " + id);
@@ -354,25 +358,19 @@ if (!String.prototype.padStart) {
       var beginMS = nowMS - 7 * 24 * 60 * 60 * 1000;
       var beginDate = new Date(beginMS);
 
-      var comparison = {
+      self = {
         element,
-        stationId,
         units,
         beginDate,
         ranges
       };
 
-      comparison.fetchData = fetchData.bind(comparison);
-      comparison.fetched = fetched.bind(comparison);
-
-      return comparison;
+      self.fetchData = fetchData.bind(self);
+      self.fetched = fetched.bind(self);
     }
 
-    return create(id, units);
-
-    function fetchData() {
+    function fetchData(stationId) {
       var fetch = new XMLHttpRequest();
-      var self = this;
       fetch.addEventListener("load", function() {
         self.fetched(this);
       });
@@ -380,7 +378,7 @@ if (!String.prototype.padStart) {
         this.beginDate.getFullYear() +
         (this.beginDate.getMonth() + 1 + "").padStart(2, "0") +
         (this.beginDate.getDate() + "").padStart(2, "0");
-      fetch.open("GET", getBaseDataURL(this.stationId) + "&begin_date=" + beginStr + "&range=168");
+      fetch.open("GET", getBaseDataURL(stationId) + "&begin_date=" + beginStr + "&range=168");
       fetch.send();
     }
 
