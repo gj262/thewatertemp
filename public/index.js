@@ -431,7 +431,7 @@ if (!String.prototype.padStart) {
 
     latestTemp = TempDisplayComponent("latest-temp", null, units, null);
     twentyFourHoursTempRange = TempRangeComponent("24-hours", units);
-    comparison = Comparison("comparison", stationId, units);
+    comparison = Comparison("comparison", units);
 
     fetchChoosenStationData(stationId);
     fetchAllStations(stationId);
