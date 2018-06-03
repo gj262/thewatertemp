@@ -293,10 +293,12 @@ if (!String.prototype.padStart) {
       var avg;
       var max;
       var sum = 0;
+      var count = 0;
       data.forEach(function(datum) {
         var value = parseFloat(datum.v);
         if (value) {
           sum = sum + value;
+          count++;
           if (!min || value < min) {
             min = value;
           }
@@ -305,8 +307,8 @@ if (!String.prototype.padStart) {
           }
         }
       });
-      if (sum !== 0) {
-        avg = sum / data.length;
+      if (sum !== 0 && count !== 0) {
+        avg = sum / count;
       }
       if (min) {
         this.min.updateValue(min);
@@ -318,6 +320,18 @@ if (!String.prototype.padStart) {
         this.max.updateValue(max);
       }
     }
+  }
+
+  function createSection(parentElement, title, bodyId) {
+    var titleElement = document.createElement("h2");
+    titleElement.innerHTML = title;
+    parentElement.appendChild(titleElement);
+
+    var bodyElement = document.createElement("div");
+    bodyElement.id = bodyId;
+    parentElement.appendChild(bodyElement);
+
+    return bodyElement;
   }
 
   function Comparison(id, units) {
@@ -338,12 +352,7 @@ if (!String.prototype.padStart) {
         var dayMS = nowMS - day * 24 * 60 * 60 * 1000;
         var dayDate = new Date(dayMS);
         var dayOfWeek = dayDate.toLocaleString("en-us", { weekday: "long" });
-        var titleElement = document.createElement("h2");
-        titleElement.innerHTML = dayOfWeek;
-        element.appendChild(titleElement);
-        var rangeElement = document.createElement("div");
-        rangeElement.id = "comparison-range-" + dayOfWeek;
-        element.appendChild(rangeElement);
+        var rangeElement = createSection(element, dayOfWeek, "comparison-range-" + dayOfWeek);
         ranges.push({
           component: TempRangeComponent(rangeElement.id, units),
           dateStr:
@@ -401,6 +410,84 @@ if (!String.prototype.padStart) {
     }
   }
 
+  function Comparison2(id, units) {
+    var self;
+    create();
+    return self;
+
+    function create() {
+      var element = document.getElementById(id);
+      if (!element) {
+        throw new Error("expected to find " + id);
+      }
+
+      var todaysDate = new Date();
+
+      self = {
+        element,
+        units,
+        todaysDate,
+        nextYearToFetch: todaysDate.getFullYear() - 1
+      };
+
+      self.fetchData = fetchData.bind(self);
+      self.fetched = fetched.bind(self);
+    }
+
+    function fetchData(stationId) {
+      var fetch = new XMLHttpRequest();
+      fetch.addEventListener("load", function() {
+        self.fetched(this);
+      });
+      var beginStr =
+        this.nextYearToFetch +
+        (this.todaysDate.getMonth() + 1 + "").padStart(2, "0") +
+        (getDateButFudgeLeapYear(this.todaysDate) + "").padStart(2, "0");
+      fetch.open("GET", getBaseDataURL(stationId) + "&begin_date=" + beginStr + "&range=24");
+      fetch.send();
+      this.stationId = stationId;
+    }
+
+    function getDateButFudgeLeapYear(date) {
+      if (date.getMonth() === 1 && date.getDate() === 29) {
+        return 28;
+      }
+      return date.getDate();
+    }
+
+    function fetched(response) {
+      var data;
+      try {
+        var payload = response.responseText;
+        payload = JSON.parse(payload);
+        data = payload.data;
+      } catch (e) {
+        console.log(e);
+      }
+
+      var forYear = this.nextYearToFetch;
+      this.nextYearToFetch = this.nextYearToFetch - 1;
+
+      var rangeElement = createSection(this.element, forYear, "comparison-range-" + forYear);
+      if (data) {
+        var component = TempRangeComponent(rangeElement.id, this.units);
+        component.displayData(data);
+        this.consecutiveBlankYears = 0;
+      } else {
+        rangeElement.innerHTML = "<p>No data for this date.</p>";
+        if (!this.consecutiveBlankYears) {
+          this.consecutiveBlankYears = 1;
+        } else {
+          this.consecutiveBlankYears++;
+        }
+      }
+
+      if (!this.consecutiveBlankYears || this.consecutiveBlankYears < 3) {
+        this.fetchData(this.stationId);
+      }
+    }
+  }
+
   function Registry(name) {
     var reg = { watchers: [] };
 
@@ -431,7 +518,7 @@ if (!String.prototype.padStart) {
 
     latestTemp = TempDisplayComponent("latest-temp", null, units, null);
     twentyFourHoursTempRange = TempRangeComponent("24-hours", units);
-    comparison = Comparison("comparison", units);
+    comparison = Comparison2("comparison", units);
 
     fetchChoosenStationData(stationId);
     fetchAllStations(stationId);
