@@ -19,6 +19,53 @@ if (!String.prototype.padStart) {
   };
 }
 
+// https://tc39.github.io/ecma262/#sec-array.prototype.find
+if (!Array.prototype.find) {
+  Object.defineProperty(Array.prototype, "find", {
+    value: function(predicate) {
+      // 1. Let O be ? ToObject(this value).
+      if (this == null) {
+        throw new TypeError("\"this\" is null or not defined");
+      }
+
+      var o = Object(this);
+
+      // 2. Let len be ? ToLength(? Get(O, "length")).
+      var len = o.length >>> 0;
+
+      // 3. If IsCallable(predicate) is false, throw a TypeError exception.
+      if (typeof predicate !== "function") {
+        throw new TypeError("predicate must be a function");
+      }
+
+      // 4. If thisArg was supplied, let T be thisArg; else let T be undefined.
+      var thisArg = arguments[1];
+
+      // 5. Let k be 0.
+      var k = 0;
+
+      // 6. Repeat, while k < len
+      while (k < len) {
+        // a. Let Pk be ! ToString(k).
+        // b. Let kValue be ? Get(O, Pk).
+        // c. Let testResult be ToBoolean(? Call(predicate, T, « kValue, k, O »)).
+        // d. If testResult is true, return kValue.
+        var kValue = o[k];
+        if (predicate.call(thisArg, kValue, k, o)) {
+          return kValue;
+        }
+        // e. Increase k by 1.
+        k++;
+      }
+
+      // 7. Return undefined.
+      return undefined;
+    },
+    configurable: true,
+    writable: true
+  });
+}
+
 // End FFS IE
 
 (function() {
@@ -398,6 +445,7 @@ if (!String.prototype.padStart) {
 
       self.fetchData = fetchData.bind(self);
       self.fetched = fetched.bind(self);
+      self.destroy = destroy.bind(self);
     }
 
     function fetchData(stationId) {
@@ -430,6 +478,13 @@ if (!String.prototype.padStart) {
         range.component.displayData(rangeData);
       });
     }
+
+    function destroy() {
+      this.ranges.forEach(function(range) {
+        range.component.destroy();
+      });
+      this.element.innerHTML = "";
+    }
   }
   comparisons.push({ comparison: ForTheLastSevenDays, title: "For the last seven days", name: "the-last-seven-days" });
 
@@ -456,6 +511,7 @@ if (!String.prototype.padStart) {
 
       self.fetchData = fetchData.bind(self);
       self.fetched = fetched.bind(self);
+      self.destroy = destroy.bind(self);
 
       stationChangeReg.add(stationChanged.bind(self));
     }
@@ -515,26 +571,49 @@ if (!String.prototype.padStart) {
     }
 
     function stationChanged() {
+      this.destroy();
+      this.rangeComponents = [];
+      this.nextYearToFetch = this.todaysDate.getFullYear() - 1;
+    }
+
+    function destroy() {
       this.rangeComponents.forEach(function(rangeComponent) {
         rangeComponent.destroy();
       });
-      this.rangeComponents = [];
       this.element.innerHTML = "";
-      this.nextYearToFetch = this.todaysDate.getFullYear() - 1;
     }
   }
   comparisons.push({ comparison: ThisDayInPriorYears, title: "This day in prior years", name: "today-in-prior-years" });
 
-  function renderComparisonChoice(comparisons) {
+  function renderComparisonChoice(comparisons, selectedName, units, stationId) {
     var select = document.getElementById("choose-comparison");
     comparisons.forEach(function(comparison) {
       var opt = document.createElement("option");
       opt.value = comparison.name;
       opt.text = comparison.title;
-      // if (selectedStationId === station.id) {
-      //   opt.setAttribute("selected", true);
-      // }
+      if (selectedName === comparison.name) {
+        opt.setAttribute("selected", true);
+      }
       select.add(opt);
+    });
+    select.addEventListener("change", function() {
+      comparisonChoosen.bind(this)(comparisons, units, stationId);
+    });
+  }
+
+  function comparisonChoosen(comparisons, units, stationId) {
+    var comparisonName = comparisons[this.selectedIndex].name;
+    localStorage.setItem("comparisonName", comparisonName);
+
+    comparison.destroy();
+    var selectedComparison = getSelectedComparison(comparisons, comparisonName);
+    comparison = selectedComparison.comparison("comparison", units);
+    comparison.fetchData(stationId);
+  }
+
+  function getSelectedComparison(comparisons, comparisonName) {
+    return comparisons.find(function(comparison) {
+      return comparison.name === comparisonName;
     });
   }
 
@@ -566,6 +645,7 @@ if (!String.prototype.padStart) {
     var units = localStorage.getItem("units") || "us";
     var stationId = localStorage.getItem("stationId") || "9414290";
     var stationName = localStorage.getItem("stationName") || "San Francisco, CA";
+    var comparisonName = localStorage.getItem("comparisonName") || comparisons[0].name;
 
     changeUnitsReg = Registry("change-units");
     resetTempsReg = Registry("reset-temps");
@@ -574,11 +654,12 @@ if (!String.prototype.padStart) {
     attachToUnitLinks();
     updateStationLink(stationId);
     setInitialStationChoice(stationId, stationName);
-    renderComparisonChoice(comparisons);
+    renderComparisonChoice(comparisons, comparisonName, units, stationId);
+    var selectedComparison = getSelectedComparison(comparisons, comparisonName);
 
     latestTemp = TempDisplayComponent("latest-temp", null, units, null);
     twentyFourHoursTempRange = TempRangeComponent("24-hours", units);
-    comparison = ThisDayInPriorYears("comparison", units);
+    comparison = selectedComparison.comparison("comparison", units);
 
     fetchChoosenStationData(stationId);
     fetchAllStations(stationId);
