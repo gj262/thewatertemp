@@ -29,6 +29,7 @@ if (!String.prototype.padStart) {
   var latestTemp;
   var twentyFourHoursTempRange;
   var comparison;
+  var comparisons = [];
 
   function setInitialStationChoice(stationId, stationName) {
     var select = document.getElementById("choose-station");
@@ -355,7 +356,7 @@ if (!String.prototype.padStart) {
     return bodyElement;
   }
 
-  function Comparison(id, units) {
+  function ForTheLastSevenDays(id, units) {
     var self;
     create();
     return self;
@@ -430,8 +431,9 @@ if (!String.prototype.padStart) {
       });
     }
   }
+  comparisons.push({ comparison: ForTheLastSevenDays, title: "For the last seven days", name: "the-last-seven-days" });
 
-  function Comparison2(id, units) {
+  function ThisDayInPriorYears(id, units) {
     var self;
     create();
     return self;
@@ -521,6 +523,20 @@ if (!String.prototype.padStart) {
       this.nextYearToFetch = this.todaysDate.getFullYear() - 1;
     }
   }
+  comparisons.push({ comparison: ThisDayInPriorYears, title: "This day in prior years", name: "today-in-prior-years" });
+
+  function renderComparisonChoice(comparisons) {
+    var select = document.getElementById("choose-comparison");
+    comparisons.forEach(function(comparison) {
+      var opt = document.createElement("option");
+      opt.value = comparison.name;
+      opt.text = comparison.title;
+      // if (selectedStationId === station.id) {
+      //   opt.setAttribute("selected", true);
+      // }
+      select.add(opt);
+    });
+  }
 
   function Registry(name) {
     var reg = { id: 0, watchers: [] };
@@ -558,10 +574,11 @@ if (!String.prototype.padStart) {
     attachToUnitLinks();
     updateStationLink(stationId);
     setInitialStationChoice(stationId, stationName);
+    renderComparisonChoice(comparisons);
 
     latestTemp = TempDisplayComponent("latest-temp", null, units, null);
     twentyFourHoursTempRange = TempRangeComponent("24-hours", units);
-    comparison = Comparison2("comparison", units);
+    comparison = ThisDayInPriorYears("comparison", units);
 
     fetchChoosenStationData(stationId);
     fetchAllStations(stationId);
