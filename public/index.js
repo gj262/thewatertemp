@@ -69,7 +69,7 @@ if (!Array.prototype.find) {
 // End FFS IE
 
 (function() {
-  var changeUnitsReg;
+  var unitsReg;
   var resetTempsReg;
   var stationChangeReg;
 
@@ -166,7 +166,7 @@ if (!Array.prototype.find) {
 
   function updateUnits(newUnits) {
     localStorage.setItem("units", newUnits);
-    changeUnitsReg.invoke({ units: newUnits });
+    unitsReg.invoke({ units: newUnits });
   }
 
   function fetchChoosenStationData(stationId) {
@@ -237,7 +237,7 @@ if (!Array.prototype.find) {
     return data;
   }
 
-  function TempDisplayComponent(id, value, units, caption) {
+  function TempDisplayComponent(id, value, caption) {
     var self;
     create();
     return self;
@@ -250,6 +250,8 @@ if (!Array.prototype.find) {
 
       value = value || "--.-";
       caption = caption || "--";
+
+      var units = unitsReg.getValue().units;
 
       element.innerHTML =
         "<span class=\"temp-value\">" +
@@ -276,8 +278,8 @@ if (!Array.prototype.find) {
       self.getValueForDisplay = getValueForDisplay.bind(self);
       self.destroy = destroy.bind(self);
 
-      self.changeUnitsReg = changeUnitsReg.add(refreshTempWhenUnitsChange.bind(self));
-      self.resetTempsReg = resetTempsReg.add(resetTemp.bind(self));
+      self.unitsRegId = unitsReg.add(refreshTempWhenUnitsChange.bind(self));
+      self.resetTempsRegId = resetTempsReg.add(resetTemp.bind(self));
     }
 
     function updateValue(value) {
@@ -317,12 +319,12 @@ if (!Array.prototype.find) {
     }
 
     function destroy() {
-      changeUnitsReg.remove(this.changeUnitsReg);
-      resetTempsReg.remove(this.resetTempsReg);
+      unitsReg.remove(this.unitsRegId);
+      resetTempsReg.remove(this.resetTempsRegId);
     }
   }
 
-  function TempRangeComponent(id, units) {
+  function TempRangeComponent(id) {
     var self;
     create();
     return self;
@@ -336,9 +338,9 @@ if (!Array.prototype.find) {
       element.classList.add("temp-range");
 
       self = {
-        min: TempDisplayComponent(id + "-min", null, units, "Min"),
-        avg: TempDisplayComponent(id + "-avg", null, units, "Avg"),
-        max: TempDisplayComponent(id + "-max", null, units, "Max")
+        min: TempDisplayComponent(id + "-min", null, "Min"),
+        avg: TempDisplayComponent(id + "-avg", null, "Avg"),
+        max: TempDisplayComponent(id + "-max", null, "Max")
       };
 
       self.displayData = displayData.bind(self);
@@ -403,7 +405,7 @@ if (!Array.prototype.find) {
     return bodyElement;
   }
 
-  function ForTheLastSevenDays(id, units) {
+  function ForTheLastSevenDays(id) {
     var self;
     create();
     return self;
@@ -423,7 +425,7 @@ if (!Array.prototype.find) {
         var dayOfWeek = dayDate.toLocaleString("en-us", { weekday: "long" });
         var rangeElement = createSection(element, dayOfWeek, "comparison-range-" + dayOfWeek);
         ranges.push({
-          component: TempRangeComponent(rangeElement.id, units),
+          component: TempRangeComponent(rangeElement.id),
           dateStr:
             dayDate.getFullYear() +
             "-" +
@@ -438,7 +440,6 @@ if (!Array.prototype.find) {
 
       self = {
         element,
-        units,
         beginDate,
         ranges
       };
@@ -488,7 +489,7 @@ if (!Array.prototype.find) {
   }
   comparisons.push({ comparison: ForTheLastSevenDays, title: "For the last seven days", name: "the-last-seven-days" });
 
-  function ThisDayInPriorYears(id, units) {
+  function ThisDayInPriorYears(id) {
     var self;
     create();
     return self;
@@ -503,7 +504,6 @@ if (!Array.prototype.find) {
 
       self = {
         element,
-        units,
         todaysDate,
         nextYearToFetch: todaysDate.getFullYear() - 1,
         rangeComponents: []
@@ -552,7 +552,7 @@ if (!Array.prototype.find) {
 
       var rangeElement = createSection(this.element, forYear, "comparison-range-" + forYear);
       if (data) {
-        var component = TempRangeComponent(rangeElement.id, this.units);
+        var component = TempRangeComponent(rangeElement.id);
         component.displayData(data);
         this.consecutiveBlankYears = 0;
         this.rangeComponents.push(component);
@@ -585,7 +585,7 @@ if (!Array.prototype.find) {
   }
   comparisons.push({ comparison: ThisDayInPriorYears, title: "This day in prior years", name: "today-in-prior-years" });
 
-  function renderComparisonChoice(comparisons, selectedName, units, stationId) {
+  function renderComparisonChoice(comparisons, selectedName, stationId) {
     var select = document.getElementById("choose-comparison");
     comparisons.forEach(function(comparison) {
       var opt = document.createElement("option");
@@ -597,17 +597,17 @@ if (!Array.prototype.find) {
       select.add(opt);
     });
     select.addEventListener("change", function() {
-      comparisonChoosen.bind(this)(comparisons, units, stationId);
+      comparisonChoosen.bind(this)(comparisons, stationId);
     });
   }
 
-  function comparisonChoosen(comparisons, units, stationId) {
+  function comparisonChoosen(comparisons, stationId) {
     var comparisonName = comparisons[this.selectedIndex].name;
     localStorage.setItem("comparisonName", comparisonName);
 
     comparison.destroy();
     var selectedComparison = getSelectedComparison(comparisons, comparisonName);
-    comparison = selectedComparison.comparison("comparison", units);
+    comparison = selectedComparison.comparison("comparison");
     comparison.fetchData(stationId);
   }
 
@@ -617,8 +617,8 @@ if (!Array.prototype.find) {
     });
   }
 
-  function Registry(name) {
-    var reg = { id: 0, watchers: [] };
+  function Registry(name, initial) {
+    var reg = { id: 0, watchers: [], value: initial };
 
     reg.add = function(toInvoke) {
       reg.watchers.push({ id: ++reg.id, toInvoke });
@@ -633,9 +633,14 @@ if (!Array.prototype.find) {
     };
 
     reg.invoke = function(payload) {
+      reg.value = payload;
       reg.watchers.forEach(function(watcher) {
         watcher.toInvoke(payload);
       });
+    };
+
+    reg.getValue = function() {
+      return reg.value;
     };
 
     return reg;
@@ -647,19 +652,19 @@ if (!Array.prototype.find) {
     var stationName = localStorage.getItem("stationName") || "San Francisco, CA";
     var comparisonName = localStorage.getItem("comparisonName") || comparisons[0].name;
 
-    changeUnitsReg = Registry("change-units");
+    unitsReg = Registry("units", { units });
     resetTempsReg = Registry("reset-temps");
     stationChangeReg = Registry("station-change");
 
     attachToUnitLinks();
     updateStationLink(stationId);
     setInitialStationChoice(stationId, stationName);
-    renderComparisonChoice(comparisons, comparisonName, units, stationId);
+    renderComparisonChoice(comparisons, comparisonName, stationId);
     var selectedComparison = getSelectedComparison(comparisons, comparisonName);
 
-    latestTemp = TempDisplayComponent("latest-temp", null, units, null);
-    twentyFourHoursTempRange = TempRangeComponent("24-hours", units);
-    comparison = selectedComparison.comparison("comparison", units);
+    latestTemp = TempDisplayComponent("latest-temp", null, null);
+    twentyFourHoursTempRange = TempRangeComponent("24-hours");
+    comparison = selectedComparison.comparison("comparison");
 
     fetchChoosenStationData(stationId);
     fetchAllStations(stationId);
