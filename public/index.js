@@ -24,6 +24,7 @@ if (!String.prototype.padStart) {
 (function() {
   var changeUnitsReg;
   var resetTempsReg;
+  var stationChangeReg;
 
   var latestTemp;
   var twentyFourHoursTempRange;
@@ -85,6 +86,7 @@ if (!String.prototype.padStart) {
     clearStationError();
 
     resetTempsReg.invoke();
+    stationChangeReg.invoke();
 
     fetchChoosenStationData(stationId);
   }
@@ -224,9 +226,10 @@ if (!String.prototype.padStart) {
       self.updateValue = updateValue.bind(self);
       self.updateCaption = updateCaption.bind(self);
       self.getValueForDisplay = getValueForDisplay.bind(self);
+      self.destroy = destroy.bind(self);
 
-      changeUnitsReg.add(refreshTempWhenUnitsChange.bind(self));
-      resetTempsReg.add(resetTemp.bind(self));
+      self.changeUnitsReg = changeUnitsReg.add(refreshTempWhenUnitsChange.bind(self));
+      self.resetTempsReg = resetTempsReg.add(resetTemp.bind(self));
     }
 
     function updateValue(value) {
@@ -264,6 +267,11 @@ if (!String.prototype.padStart) {
         this.captionElement.innerHTML = "--";
       }
     }
+
+    function destroy() {
+      changeUnitsReg.remove(this.changeUnitsReg);
+      resetTempsReg.remove(this.resetTempsReg);
+    }
   }
 
   function TempRangeComponent(id, units) {
@@ -286,6 +294,7 @@ if (!String.prototype.padStart) {
       };
 
       self.displayData = displayData.bind(self);
+      self.destroy = destroy.bind(self);
     }
 
     function displayData(data) {
@@ -318,6 +327,18 @@ if (!String.prototype.padStart) {
       }
       if (max) {
         this.max.updateValue(max);
+      }
+    }
+
+    function destroy() {
+      if (this.min) {
+        this.min.destroy();
+      }
+      if (this.avg) {
+        this.avg.destroy();
+      }
+      if (this.max) {
+        this.max.destroy();
       }
     }
   }
@@ -427,11 +448,14 @@ if (!String.prototype.padStart) {
         element,
         units,
         todaysDate,
-        nextYearToFetch: todaysDate.getFullYear() - 1
+        nextYearToFetch: todaysDate.getFullYear() - 1,
+        rangeComponents: []
       };
 
       self.fetchData = fetchData.bind(self);
       self.fetched = fetched.bind(self);
+
+      stationChangeReg.add(stationChanged.bind(self));
     }
 
     function fetchData(stationId) {
@@ -473,6 +497,7 @@ if (!String.prototype.padStart) {
         var component = TempRangeComponent(rangeElement.id, this.units);
         component.displayData(data);
         this.consecutiveBlankYears = 0;
+        this.rangeComponents.push(component);
       } else {
         rangeElement.innerHTML = "<p>No data for this date.</p>";
         if (!this.consecutiveBlankYears) {
@@ -486,18 +511,35 @@ if (!String.prototype.padStart) {
         this.fetchData(this.stationId);
       }
     }
+
+    function stationChanged() {
+      this.rangeComponents.forEach(function(rangeComponent) {
+        rangeComponent.destroy();
+      });
+      this.rangeComponents = [];
+      this.element.innerHTML = "";
+      this.nextYearToFetch = this.todaysDate.getFullYear() - 1;
+    }
   }
 
   function Registry(name) {
-    var reg = { watchers: [] };
+    var reg = { id: 0, watchers: [] };
 
     reg.add = function(toInvoke) {
-      reg.watchers.push(toInvoke);
+      reg.watchers.push({ id: ++reg.id, toInvoke });
+      return reg.id;
+    };
+
+    reg.remove = function(id) {
+      reg.watchers = reg.watchers.filter(function(watcher) {
+        return watcher.id !== id;
+      });
+      return reg.id;
     };
 
     reg.invoke = function(payload) {
-      reg.watchers.forEach(function(toInvoke) {
-        toInvoke(payload);
+      reg.watchers.forEach(function(watcher) {
+        watcher.toInvoke(payload);
       });
     };
 
@@ -511,6 +553,7 @@ if (!String.prototype.padStart) {
 
     changeUnitsReg = Registry("change-units");
     resetTempsReg = Registry("reset-temps");
+    stationChangeReg = Registry("station-change");
 
     attachToUnitLinks();
     updateStationLink(stationId);
