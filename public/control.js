@@ -46,6 +46,28 @@ function LatestTempController(temp, station) {
   }
 }
 
+/* exported DisplayUnitsController */
+function DisplayUnitsController(displayUnits) {
+  var self;
+  create();
+  return self;
+
+  function create() {
+    self = {
+      displayUnits: displayUnits
+    };
+
+    self.onChange = onChange.bind(self);
+  }
+
+  function onChange(units) {
+    if (self.displayUnits.get() !== units) {
+      localStorage.setItem("units", units);
+      self.displayUnits.change(units);
+    }
+  }
+}
+
 function getBaseDataURL(stationId) {
   return (
     "https://tidesandcurrents.noaa.gov/api/datagetter?station=" +

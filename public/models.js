@@ -15,9 +15,10 @@ function Model(initialValue) {
   };
 
   model.change = function(payload) {
+    var before = model.value;
     model.value = payload;
     model.watchers.forEach(function(watcher) {
-      watcher.toInvoke(payload);
+      watcher.toInvoke(before);
     });
   };
 
