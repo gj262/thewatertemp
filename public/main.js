@@ -1,9 +1,10 @@
 /* global Model, 
-          LatestTempController, DisplayUnitsController, StationsController, SelectedStationController, 
+          LatestTempController, TwentyFourHourRangeController, DisplayUnitsController, StationsController, SelectedStationController, 
           Station, DisplayUnits, TempDisplay  */
 (function() {
   document.addEventListener("DOMContentLoaded", function() {
     var latestTemp = Model({});
+    var twentyFourHourRange = Model({});
     var selectedStation = Model({
       id: localStorage.getItem("stationId") || "9414290",
       name: localStorage.getItem("stationName") || "San Francisco, CA"
@@ -14,6 +15,7 @@
 
     var displayUnitsController = DisplayUnitsController(displayUnits);
     LatestTempController(latestTemp, selectedStation, stationError);
+    TwentyFourHourRangeController(twentyFourHourRange, selectedStation);
     StationsController(stations);
     var selectedStationController = SelectedStationController(selectedStation);
 

@@ -50,6 +50,71 @@ function LatestTempController(temp, station, error) {
   }
 }
 
+/* exported TwentyFourHourRangeController */
+function TwentyFourHourRangeController(range, station) {
+  var self;
+  create();
+  return self;
+
+  function create() {
+    self = {
+      range: range,
+      station: station
+    };
+
+    fetchData();
+
+    station.watch(function() {
+      self.range.change({});
+      fetchData();
+    });
+  }
+
+  function fetchData() {
+    var getCurrentTemp = new XMLHttpRequest();
+    getCurrentTemp.addEventListener("load", function() {
+      fetched(this);
+    });
+    getCurrentTemp.open("GET", getBaseDataURL(self.station.get().id) + "&range=24");
+    getCurrentTemp.send();
+  }
+
+  function fetched(response) {
+    var data;
+    try {
+      var payload = response.responseText;
+      payload = JSON.parse(payload);
+      data = payload.data;
+    } catch (e) {
+      console.log(e);
+    }
+    if (data) {
+      var min;
+      var avg;
+      var max;
+      var sum = 0;
+      var count = 0;
+      data.forEach(function(datum) {
+        var value = parseFloat(datum.v);
+        if (value) {
+          sum = sum + value;
+          count++;
+          if (!min || value < min) {
+            min = value;
+          }
+          if (!max || value > max) {
+            max = value;
+          }
+        }
+      });
+      if (sum !== 0 && count !== 0) {
+        avg = sum / count;
+      }
+      self.range.change({ min: min, avg: avg, max: max });
+    }
+  }
+}
+
 /* exported DisplayUnitsController */
 function DisplayUnitsController(displayUnits) {
   var self;
