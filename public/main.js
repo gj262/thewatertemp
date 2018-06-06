@@ -1,4 +1,6 @@
-/* global Model, LatestTempController, DisplayUnitsController, StationsController, SelectedStationController, Station, DisplayUnits, TempDisplay  */
+/* global Model, 
+          LatestTempController, DisplayUnitsController, StationsController, SelectedStationController, 
+          Station, DisplayUnits, TempDisplay  */
 (function() {
   document.addEventListener("DOMContentLoaded", function() {
     var latestTemp = Model({});

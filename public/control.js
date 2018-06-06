@@ -10,16 +10,18 @@ function LatestTempController(temp, station) {
       station: station
     };
 
-    self.fetchData = fetchData;
-    self.fetched = fetched;
+    fetchData();
 
-    self.fetchData();
+    station.watch(function() {
+      self.temp.change({});
+      fetchData();
+    });
   }
 
   function fetchData() {
     var getCurrentTemp = new XMLHttpRequest();
     getCurrentTemp.addEventListener("load", function() {
-      self.fetched(this);
+      fetched(this);
     });
     getCurrentTemp.open("GET", getBaseDataURL(self.station.get().id) + "&date=latest");
     getCurrentTemp.send();
