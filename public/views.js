@@ -84,7 +84,7 @@ function DisplayUnits(id, onChange) {
 }
 
 /* exported Station */
-function Station(id, selectedStation, stations, onChangeStation) {
+function Station(id, selectedStation, stationError, stations, onChangeStation) {
   var self;
   create();
   return self;
@@ -103,10 +103,12 @@ function Station(id, selectedStation, stations, onChangeStation) {
 
     self = {
       selectedStation: selectedStation,
+      stationError: stationError,
       stations: stations,
       element: element,
       selectElement: element.children[0],
-      homeLinkElement: element.children[1]
+      homeLinkElement: element.children[1],
+      stationErrorElement: element.children[2]
     };
 
     setInitialStationChoice();
@@ -114,9 +116,11 @@ function Station(id, selectedStation, stations, onChangeStation) {
       onChangeStation(self.stations.get()[this.selectedIndex]);
     });
     setStationHomeLink();
+    setStationErrorMessage();
 
     stations.watch(stationsUpdated);
     selectedStation.watch(selectedStationUpdated);
+    stationError.watch(setStationErrorMessage);
   }
 
   function setInitialStationChoice() {
@@ -146,6 +150,18 @@ function Station(id, selectedStation, stations, onChangeStation) {
       "href",
       "https://tidesandcurrents.noaa.gov/stationhome.html?id=" + self.selectedStation.get().id
     );
+  }
+
+  function setStationErrorMessage() {
+    var element = self.stationErrorElement;
+    var error = self.stationError.get();
+    if (error) {
+      element.innerHTML = error;
+      element.classList.remove("no-error");
+    } else {
+      element.innerHTML = "";
+      element.classList.add("no-error");
+    }
   }
 
   function selectedStationUpdated(before) {

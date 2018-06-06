@@ -1,5 +1,5 @@
 /* exported LatestTempController */
-function LatestTempController(temp, station) {
+function LatestTempController(temp, station, error) {
   var self;
   create();
   return self;
@@ -7,13 +7,15 @@ function LatestTempController(temp, station) {
   function create() {
     self = {
       temp: temp,
-      station: station
+      station: station,
+      error: error
     };
 
     fetchData();
 
     station.watch(function() {
       self.temp.change({});
+      self.error.change("");
       fetchData();
     });
   }
@@ -34,7 +36,7 @@ function LatestTempController(temp, station) {
       var payload = response.responseText;
       payload = JSON.parse(payload);
       if (payload.error && payload.error.message) {
-        //setStationError(payload.error.message);
+        error.change(payload.error.message);
       } else {
         value = parseFloat(payload.data[0].v);
         time = payload.data[0].t;

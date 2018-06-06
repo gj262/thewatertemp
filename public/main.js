@@ -10,13 +10,14 @@
     });
     var displayUnits = Model(localStorage.getItem("units") || "us");
     var stations = Model([]);
+    var stationError = Model("");
 
     var displayUnitsController = DisplayUnitsController(displayUnits);
-    LatestTempController(latestTemp, selectedStation);
+    LatestTempController(latestTemp, selectedStation, stationError);
     StationsController(stations);
     var selectedStationController = SelectedStationController(selectedStation);
 
-    Station("station-v2", selectedStation, stations, selectedStationController.onChange);
+    Station("station-v2", selectedStation, stationError, stations, selectedStationController.onChange);
     DisplayUnits("choose-unit-v2", displayUnitsController.onChange);
     TempDisplay("latest-temp-v2", latestTemp, displayUnits);
   });
