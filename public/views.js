@@ -31,8 +31,8 @@ function TempDisplay(id, temp, displayUnits) {
       captionElement: element.children[2]
     };
 
-    temp.watch(updateTemp.bind(self));
-    displayUnits.watch(updateUnits.bind(self));
+    temp.watch(updateTemp);
+    displayUnits.watch(updateUnits);
   }
 
   function updateTemp(before) {
@@ -109,14 +109,14 @@ function Station(id, selectedStation, stations, onChangeStation) {
       homeLinkElement: element.children[1]
     };
 
-    setInitialStationChoice.bind(self)();
+    setInitialStationChoice();
     self.selectElement.addEventListener("change", function() {
       onChangeStation(self.stations.get()[this.selectedIndex]);
     });
     setStationHomeLink();
 
-    stations.watch(stationsUpdated.bind(self));
-    selectedStation.watch(selectedStationUpdated.bind(self));
+    stations.watch(stationsUpdated);
+    selectedStation.watch(selectedStationUpdated);
   }
 
   function setInitialStationChoice() {

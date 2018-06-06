@@ -10,8 +10,8 @@ function LatestTempController(temp, station) {
       station: station
     };
 
-    self.fetchData = fetchData.bind(self);
-    self.fetched = fetched.bind(self);
+    self.fetchData = fetchData;
+    self.fetched = fetched;
 
     self.fetchData();
   }
@@ -57,7 +57,7 @@ function DisplayUnitsController(displayUnits) {
       displayUnits: displayUnits
     };
 
-    self.onChange = onChange.bind(self);
+    self.onChange = onChange;
     self.displayUnits.watch(onUpdate);
   }
 
@@ -85,8 +85,8 @@ function StationsController(stations) {
       stations: stations
     };
 
-    self.fetchStations = fetchStations.bind(self);
-    self.fetched = fetched.bind(self);
+    self.fetchStations = fetchStations;
+    self.fetched = fetched;
 
     self.fetchStations();
   }
@@ -131,7 +131,7 @@ function SelectedStationController(selectedStation) {
       selectedStation: selectedStation
     };
 
-    self.onChange = onChange.bind(self);
+    self.onChange = onChange;
     self.selectedStation.watch(onUpdate);
   }
 
