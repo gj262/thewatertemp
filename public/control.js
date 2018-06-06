@@ -299,6 +299,8 @@ function ThisDayInPriorYearsController(comparison, station) {
     fetchData();
 
     station.watch(function() {
+      self.nextYearToFetch = todaysDate.getFullYear() - 1;
+      self.consecutiveBlankYears = 0;
       self.comparison.change({ title: self.comparison.get().title, series: [] });
       fetchData();
     });

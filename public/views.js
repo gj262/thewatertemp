@@ -59,7 +59,7 @@ function TempDisplay(id, temp, displayUnits) {
     var value = parseFloat(temp.get().value);
     if (value) {
       if (displayUnits.get() === "metric") {
-        value = (value - 32) * 5 / 9;
+        value = ((value - 32) * 5) / 9;
       }
       return value.toFixed(1);
     } else {
@@ -136,6 +136,11 @@ function ComparisonDisplay(id, comparison, displayUnits) {
   }
 
   function render() {
+    // note: this is in the business of creating, growing or removing
+    // but not item updates which would be handled by range updates.
+    while (self.comparison.get().series.length < self.element.children.length) {
+      self.element.removeChild(self.element.lastChild);
+    }
     self.comparison.get().series.forEach(function(item) {
       var id = getIdForItem(item);
       var element = document.getElementById(id);
