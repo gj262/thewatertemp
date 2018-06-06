@@ -142,10 +142,10 @@ function Station(id, selectedStation, stationError, stations, onChangeStation) {
     }
 
     element.innerHTML =
-      "<select id=\"choose-station-v2\" name=\"station\"></select>" +
-      "<a id=\"station-link-v2\" class=\"station-link\" href=\"#\" " +
+      "<select id=\"choose-station\" name=\"station\"></select>" +
+      "<a id=\"station-link\" class=\"station-link\" href=\"#\" " +
       "   title=\"Go to this stations home page\" target=\"_blank\"></a>" +
-      "<p id=\"station-error-v2\" class=\"station-error no-error\"></p>";
+      "<p id=\"station-error\" class=\"station-error no-error\"></p>";
 
     self = {
       selectedStation: selectedStation,

@@ -22,9 +22,9 @@
     var selectedStationController = SelectedStationController(selectedStation);
     SevenDayComparisonController(sevenDayComparison, selectedStation);
 
-    Station("station-v2", selectedStation, stationError, stations, selectedStationController.onChange);
-    DisplayUnits("choose-unit-v2", displayUnitsController.onChange);
-    TempDisplay("latest-temp-v2", latestTemp, displayUnits);
-    RangeDisplay("24-hours-v2", twentyFourHourRange, displayUnits);
+    Station("station", selectedStation, stationError, stations, selectedStationController.onChange);
+    DisplayUnits("choose-unit", displayUnitsController.onChange);
+    TempDisplay("latest-temp", latestTemp, displayUnits);
+    RangeDisplay("24-hours", twentyFourHourRange, displayUnits);
   });
 })();
