@@ -1,6 +1,6 @@
 /* global Model, 
           LatestTempController, TwentyFourHourRangeController, DisplayUnitsController, 
-            StationsController, SelectedStationController, 
+            StationsController, SelectedStationController, SevenDayComparisonController,
           Station, DisplayUnits, TempDisplay, RangeDisplay  */
 (function() {
   document.addEventListener("DOMContentLoaded", function() {
@@ -13,12 +13,14 @@
     var displayUnits = Model(localStorage.getItem("units") || "us");
     var stations = Model([]);
     var stationError = Model("");
+    var sevenDayComparison = Model({ title: "For the last seven days", series: [] });
 
     var displayUnitsController = DisplayUnitsController(displayUnits);
     LatestTempController(latestTemp, selectedStation, stationError);
     TwentyFourHourRangeController(twentyFourHourRange, selectedStation);
     StationsController(stations);
     var selectedStationController = SelectedStationController(selectedStation);
+    SevenDayComparisonController(sevenDayComparison, selectedStation);
 
     Station("station-v2", selectedStation, stationError, stations, selectedStationController.onChange);
     DisplayUnits("choose-unit-v2", displayUnitsController.onChange);

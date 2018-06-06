@@ -1,3 +1,5 @@
+/* global Model */
+
 /* exported LatestTempController */
 function LatestTempController(temp, station, error) {
   var self;
@@ -89,28 +91,7 @@ function TwentyFourHourRangeController(range, station) {
       console.log(e);
     }
     if (data) {
-      var min;
-      var avg;
-      var max;
-      var sum = 0;
-      var count = 0;
-      data.forEach(function(datum) {
-        var value = parseFloat(datum.v);
-        if (value) {
-          sum = sum + value;
-          count++;
-          if (!min || value < min) {
-            min = value;
-          }
-          if (!max || value > max) {
-            max = value;
-          }
-        }
-      });
-      if (sum !== 0 && count !== 0) {
-        avg = sum / count;
-      }
-      self.range.change({ min: min, avg: avg, max: max });
+      self.range.change(getRangeFromData(data));
     }
   }
 }
@@ -218,10 +199,114 @@ function SelectedStationController(selectedStation) {
   }
 }
 
+/* exported SevenDayComparisonController */
+function SevenDayComparisonController(comparison, station) {
+  var self;
+  create();
+  return self;
+
+  function create() {
+    var nowMS = Date.now();
+
+    var series = [];
+    for (var day = 1; day <= 7; day++) {
+      var dayMS = nowMS - day * 24 * 60 * 60 * 1000;
+      var dayDate = new Date(dayMS);
+      var dayOfWeek = dayDate.toLocaleString("en-us", { weekday: "long" });
+      series.push({
+        title: dayOfWeek,
+        dateStr:
+          dayDate.getFullYear() +
+          "-" +
+          (dayDate.getMonth() + 1 + "").padStart(2, "0") +
+          "-" +
+          (dayDate.getDate() + "").padStart(2, "0"),
+        range: Model({})
+      });
+    }
+
+    comparison.change({ title: comparison.get().title, series: series });
+
+    var beginMS = nowMS - 7 * 24 * 60 * 60 * 1000;
+    var beginDate = new Date(beginMS);
+
+    self = {
+      comparison: comparison,
+      station: station,
+      series: series,
+      beginDate: beginDate
+    };
+
+    fetchData();
+
+    station.watch(function() {
+      self.comparison.change({ title: self.comparison.get().title, series: series });
+      fetchData();
+    });
+  }
+
+  function fetchData() {
+    var getData = new XMLHttpRequest();
+    getData.addEventListener("load", function() {
+      fetched(this);
+    });
+    var beginStr =
+      self.beginDate.getFullYear() +
+      (self.beginDate.getMonth() + 1 + "").padStart(2, "0") +
+      (self.beginDate.getDate() + "").padStart(2, "0");
+    getData.open("GET", getBaseDataURL(self.station.get().id) + "&begin_date=" + beginStr + "&range=168");
+    getData.send();
+  }
+
+  function fetched(response) {
+    var data;
+    try {
+      var payload = response.responseText;
+      payload = JSON.parse(payload);
+      data = payload.data;
+    } catch (e) {
+      console.log(e);
+    }
+    if (data) {
+      self.series.forEach(function(seriesItem) {
+        var rangeData = data.filter(function(datum) {
+          return datum.t.indexOf(seriesItem.dateStr) === 0;
+        });
+        seriesItem.range.change(getRangeFromData(rangeData));
+      });
+    }
+  }
+}
+
 function getBaseDataURL(stationId) {
   return (
     "https://tidesandcurrents.noaa.gov/api/datagetter?station=" +
     stationId +
     "&product=water_temperature&format=json&units=english&time_zone=lst_ldt"
   );
+}
+
+function getRangeFromData(data) {
+  var min;
+  var avg;
+  var max;
+  var sum = 0;
+  var count = 0;
+  data.forEach(function(datum) {
+    var value = parseFloat(datum.v);
+    if (value) {
+      sum = sum + value;
+      count++;
+      if (!min || value < min) {
+        min = value;
+      }
+      if (!max || value > max) {
+        max = value;
+      }
+    }
+  });
+  if (sum !== 0 && count !== 0) {
+    avg = sum / count;
+  }
+  return { min: min, avg: avg, max: max };
 }
