@@ -1,7 +1,7 @@
 /* global Model, 
           LatestTempController, TwentyFourHourRangeController, DisplayUnitsController, 
             StationsController, SelectedStationController, SevenDayComparisonController,
-          Station, DisplayUnits, TempDisplay, RangeDisplay  */
+          Station, DisplayUnits, TempDisplay, RangeDisplay, ComparisonDisplay  */
 (function() {
   document.addEventListener("DOMContentLoaded", function() {
     var latestTemp = Model({});
@@ -26,5 +26,6 @@
     DisplayUnits("choose-unit", displayUnitsController.onChange);
     TempDisplay("latest-temp", latestTemp, displayUnits);
     RangeDisplay("24-hours", twentyFourHourRange, displayUnits);
+    ComparisonDisplay("comparison", sevenDayComparison, displayUnits);
   });
 })();

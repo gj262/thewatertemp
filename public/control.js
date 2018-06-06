@@ -233,14 +233,15 @@ function SevenDayComparisonController(comparison, station) {
     self = {
       comparison: comparison,
       station: station,
-      series: series,
       beginDate: beginDate
     };
 
     fetchData();
 
     station.watch(function() {
-      self.comparison.change({ title: self.comparison.get().title, series: series });
+      series.forEach(function(seriesItem) {
+        seriesItem.range.change({});
+      });
       fetchData();
     });
   }
@@ -268,7 +269,7 @@ function SevenDayComparisonController(comparison, station) {
       console.log(e);
     }
     if (data) {
-      self.series.forEach(function(seriesItem) {
+      self.comparison.get().series.forEach(function(seriesItem) {
         var rangeData = data.filter(function(datum) {
           return datum.t.indexOf(seriesItem.dateStr) === 0;
         });

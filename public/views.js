@@ -112,6 +112,55 @@ function RangeDisplay(id, range, displayUnits) {
   }
 }
 
+/* exported ComparisonDisplay */
+function ComparisonDisplay(id, comparison, displayUnits) {
+  var self;
+  create();
+  return self;
+
+  function create() {
+    var element = document.getElementById(id);
+    if (!element) {
+      throw new Error("expected to find " + id);
+    }
+
+    self = {
+      comparison: comparison,
+      displayUnits: displayUnits,
+      element: element
+    };
+
+    comparison.watch(render);
+
+    render();
+  }
+
+  function render() {
+    self.comparison.get().series.forEach(function(item) {
+      var id = getIdForItem(item);
+      var element = document.getElementById(id);
+      if (!element) {
+        element = document.createElement("div");
+        element.id = id;
+        element.innerHTML = "<h2>" + item.title + "</h2>" + "<div id=\"" + id + "-range\"></div>";
+        self.element.appendChild(element);
+        RangeDisplay(id + "-range", item.range, self.displayUnits);
+      }
+    });
+  }
+
+  function getIdForItem(item) {
+    return (
+      self.comparison
+        .get()
+        .title.toLowerCase()
+        .replace(/\s/g, "-") +
+      "-" +
+      item.title.toLowerCase().replace(/\s/g, "-")
+    );
+  }
+}
+
 /* exported DisplayUnits */
 function DisplayUnits(id, onChange) {
   var self;
