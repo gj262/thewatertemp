@@ -1,6 +1,7 @@
 /* global Model, 
-          LatestTempController, TwentyFourHourRangeController, DisplayUnitsController, StationsController, SelectedStationController, 
-          Station, DisplayUnits, TempDisplay  */
+          LatestTempController, TwentyFourHourRangeController, DisplayUnitsController, 
+            StationsController, SelectedStationController, 
+          Station, DisplayUnits, TempDisplay, RangeDisplay  */
 (function() {
   document.addEventListener("DOMContentLoaded", function() {
     var latestTemp = Model({});
@@ -22,5 +23,6 @@
     Station("station-v2", selectedStation, stationError, stations, selectedStationController.onChange);
     DisplayUnits("choose-unit-v2", displayUnitsController.onChange);
     TempDisplay("latest-temp-v2", latestTemp, displayUnits);
+    RangeDisplay("24-hours-v2", twentyFourHourRange, displayUnits);
   });
 })();

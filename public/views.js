@@ -1,3 +1,5 @@
+/* global Model */
+
 /* exported TempDisplay */
 function TempDisplay(id, temp, displayUnits) {
   var self;
@@ -62,6 +64,50 @@ function TempDisplay(id, temp, displayUnits) {
       return value.toFixed(1);
     } else {
       return "--.-";
+    }
+  }
+}
+
+/* exported RangeDisplay */
+function RangeDisplay(id, range, displayUnits) {
+  var self;
+  create();
+  return self;
+
+  function create() {
+    var element = document.getElementById(id);
+    if (!element) {
+      throw new Error("expected to find " + id);
+    }
+
+    element.innerHTML = "<div id=\"" + id + "-min\"></div><div id=\"" + id + "-avg\"></div><div id=\"" + id + "-max\"></div>";
+    element.classList.add("temp-range");
+
+    self = {
+      range: range,
+      min: Model({ value: range.min, caption: "Min" }),
+      max: Model({ value: range.max, caption: "Max" }),
+      avg: Model({ value: range.avg, caption: "Avg" }),
+      displayUnits: displayUnits,
+      element: element
+    };
+
+    TempDisplay(id + "-min", self.min, self.displayUnits);
+    TempDisplay(id + "-max", self.max, self.displayUnits);
+    TempDisplay(id + "-avg", self.avg, self.displayUnits);
+
+    range.watch(onUpdate);
+  }
+
+  function onUpdate(before) {
+    if (self.range.get().min !== before.min) {
+      self.min.change({ value: self.range.get().min, caption: "Min" });
+    }
+    if (self.range.get().max !== before.max) {
+      self.max.change({ value: self.range.get().max, caption: "Max" });
+    }
+    if (self.range.get().avg !== before.avg) {
+      self.avg.change({ value: self.range.get().avg, caption: "Avg" });
     }
   }
 }
