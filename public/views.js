@@ -36,20 +36,20 @@ function TempDisplay(id, temp, displayUnits) {
   }
 
   function updateTemp(before) {
-    if (this.temp.get().value !== before.value) {
-      this.valueElement.innerHTML = getValueForDisplay(this.temp, this.displayUnits);
+    if (self.temp.get().value !== before.value) {
+      self.valueElement.innerHTML = getValueForDisplay(self.temp, self.displayUnits);
     }
-    if (this.temp.get().caption !== before.caption) {
-      this.captionElement.innerHTML = this.temp.get().caption || "--";
+    if (self.temp.get().caption !== before.caption) {
+      self.captionElement.innerHTML = self.temp.get().caption || "--";
     }
   }
 
   function updateUnits(before) {
-    if (this.displayUnits.get() !== before) {
-      this.unitsElement.classList.remove("us");
-      this.unitsElement.classList.remove("metric");
-      this.unitsElement.classList.add(this.displayUnits.get());
-      this.valueElement.innerHTML = getValueForDisplay(this.temp, this.displayUnits);
+    if (self.displayUnits.get() !== before) {
+      self.unitsElement.classList.remove("us");
+      self.unitsElement.classList.remove("metric");
+      self.unitsElement.classList.add(self.displayUnits.get());
+      self.valueElement.innerHTML = getValueForDisplay(self.temp, self.displayUnits);
     }
   }
 
@@ -80,5 +80,56 @@ function DisplayUnits(id, onChange) {
     var links = element.querySelectorAll("a");
     links[0].addEventListener("click", onChange.bind({}, "us"));
     links[1].addEventListener("click", onChange.bind({}, "metric"));
+  }
+}
+
+/* exported Station */
+function Station(id, selectedStation, stations) {
+  var self;
+  create();
+  return self;
+
+  function create() {
+    var element = document.getElementById(id);
+    if (!element) {
+      throw new Error("expected to find " + id);
+    }
+
+    element.innerHTML =
+      "<select id=\"choose-station-v2\" name=\"station\"></select>" +
+      "<a id=\"station-link-v2\" class=\"station-link\" href=\"#\"></a>" +
+      "<p id=\"station-error-v2\" class=\"station-error no-error\"></p>";
+
+    self = {
+      selectedStation: selectedStation,
+      stations: stations,
+      element: element,
+      selectElement: element.children[0]
+    };
+
+    setInitialStation.bind(self)();
+
+    stations.watch(stationsUpdated.bind(self));
+  }
+
+  function setInitialStation() {
+    var opt = document.createElement("option");
+    opt.value = self.selectedStation.get().id;
+    opt.text = self.selectedStation.get().name;
+    opt.setAttribute("selected", true);
+    self.selectElement.add(opt);
+  }
+
+  function stationsUpdated() {
+    self.selectElement.innerHTML = "";
+    self.stations.get().forEach(function(station) {
+      var opt = document.createElement("option");
+      opt.value = station.id;
+      opt.text = station.name;
+      if (self.selectedStation.get().id === station.id) {
+        opt.setAttribute("selected", true);
+      }
+      self.selectElement.add(opt);
+    });
   }
 }

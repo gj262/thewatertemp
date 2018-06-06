@@ -21,7 +21,7 @@ function LatestTempController(temp, station) {
     getCurrentTemp.addEventListener("load", function() {
       self.fetched(this);
     });
-    getCurrentTemp.open("GET", getBaseDataURL(this.station.get().id) + "&date=latest");
+    getCurrentTemp.open("GET", getBaseDataURL(self.station.get().id) + "&date=latest");
     getCurrentTemp.send();
   }
 
@@ -41,7 +41,7 @@ function LatestTempController(temp, station) {
       console.log(e);
     }
     if (value && time) {
-      this.temp.change({ value: value, caption: time });
+      self.temp.change({ value: value, caption: time });
     }
   }
 }
@@ -64,6 +64,52 @@ function DisplayUnitsController(displayUnits) {
     if (self.displayUnits.get() !== units) {
       localStorage.setItem("units", units);
       self.displayUnits.change(units);
+    }
+  }
+}
+
+/* exported StationsController */
+function StationsController(stations) {
+  var self;
+  create();
+  return self;
+
+  function create() {
+    self = {
+      stations: stations
+    };
+
+    self.fetchStations = fetchStations.bind(self);
+    self.fetched = fetched.bind(self);
+
+    self.fetchStations();
+  }
+
+  function fetchStations() {
+    var getStations = new XMLHttpRequest();
+    getStations.addEventListener("load", function() {
+      self.fetched(this);
+    });
+    getStations.open("GET", "http://tidesandcurrents.noaa.gov/mdapi/v0.6/webapi/stations.json?type=watertemp");
+    getStations.send();
+  }
+
+  function fetched(response) {
+    try {
+      var payload = response.responseText;
+      payload = JSON.parse(payload);
+      var stations = payload.stations.map(function(station) {
+        return {
+          id: station.id,
+          name: station.name + (station.state ? ", " + station.state : "")
+        };
+      });
+      stations = stations.sort(function(a, b) {
+        return a.name.localeCompare(b.name);
+      });
+      self.stations.change(stations);
+    } catch (e) {
+      console.log(e);
     }
   }
 }
