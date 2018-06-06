@@ -85,9 +85,9 @@ function RangeDisplay(id, range, displayUnits) {
 
     self = {
       range: range,
-      min: Model({ value: range.min, caption: "Min" }),
-      max: Model({ value: range.max, caption: "Max" }),
-      avg: Model({ value: range.avg, caption: "Avg" }),
+      min: Model({ value: range.get().min, caption: "Min" }),
+      max: Model({ value: range.get().max, caption: "Max" }),
+      avg: Model({ value: range.get().avg, caption: "Avg" }),
       displayUnits: displayUnits,
       element: element
     };
@@ -151,12 +151,9 @@ function ComparisonDisplay(id, comparison, displayUnits) {
 
   function getIdForItem(item) {
     return (
-      self.comparison
-        .get()
-        .title.toLowerCase()
-        .replace(/\s/g, "-") +
+      (self.comparison.get().title + "").toLowerCase().replace(/\s/g, "-") +
       "-" +
-      item.title.toLowerCase().replace(/\s/g, "-")
+      (item.title + "").toLowerCase().replace(/\s/g, "-")
     );
   }
 }

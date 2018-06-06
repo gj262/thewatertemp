@@ -239,7 +239,7 @@ function SevenDayComparisonController(comparison, station) {
     fetchData();
 
     station.watch(function() {
-      series.forEach(function(seriesItem) {
+      self.comparison.get().series.forEach(function(seriesItem) {
         seriesItem.range.change({});
       });
       fetchData();
@@ -275,6 +275,81 @@ function SevenDayComparisonController(comparison, station) {
         });
         seriesItem.range.change(getRangeFromData(rangeData));
       });
+    }
+  }
+}
+
+/* exported ThisDayInPriorYearsController */
+function ThisDayInPriorYearsController(comparison, station) {
+  var self;
+  create();
+  return self;
+
+  function create() {
+    var todaysDate = new Date();
+
+    self = {
+      comparison: comparison,
+      station: station,
+      todaysDate: todaysDate,
+      nextYearToFetch: todaysDate.getFullYear() - 1
+    };
+
+    fetchData();
+
+    station.watch(function() {
+      self.comparison.change({ title: self.comparison.get().title, series: [] });
+      fetchData();
+    });
+  }
+
+  function fetchData() {
+    var getData = new XMLHttpRequest();
+    getData.addEventListener("load", function() {
+      fetched(this);
+    });
+    var beginStr =
+      self.nextYearToFetch +
+      (self.todaysDate.getMonth() + 1 + "").padStart(2, "0") +
+      (getDateButFudgeLeapYear(self.todaysDate) + "").padStart(2, "0");
+    getData.open("GET", getBaseDataURL(self.station.get().id) + "&begin_date=" + beginStr + "&range=24");
+    getData.send();
+  }
+
+  function getDateButFudgeLeapYear(date) {
+    if (date.getMonth() === 1 && date.getDate() === 29) {
+      return 28;
+    }
+    return date.getDate();
+  }
+
+  function fetched(response) {
+    var data;
+    try {
+      var payload = response.responseText;
+      payload = JSON.parse(payload);
+      data = payload.data;
+    } catch (e) {
+      console.log(e);
+    }
+
+    var forYear = self.nextYearToFetch;
+    self.nextYearToFetch = self.nextYearToFetch - 1;
+
+    if (data) {
+      self.consecutiveBlankYears = 0;
+      var seriesItem = { title: forYear, range: Model(getRangeFromData(data)) };
+      self.comparison.change({ title: self.comparison.get().title, series: self.comparison.get().series.concat([seriesItem]) });
+    } else {
+      if (!self.consecutiveBlankYears) {
+        self.consecutiveBlankYears = 1;
+      } else {
+        self.consecutiveBlankYears++;
+      }
+    }
+
+    if (!self.consecutiveBlankYears || self.consecutiveBlankYears < 3) {
+      fetchData(self.stationId);
     }
   }
 }
