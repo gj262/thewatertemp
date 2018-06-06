@@ -1,4 +1,4 @@
-/* global Model, LatestTempController, DisplayUnitsController, StationsController, Station, DisplayUnits, TempDisplay  */
+/* global Model, LatestTempController, DisplayUnitsController, StationsController, SelectedStationController, Station, DisplayUnits, TempDisplay  */
 (function() {
   document.addEventListener("DOMContentLoaded", function() {
     var latestTemp = Model({});
@@ -12,8 +12,9 @@
     var displayUnitsController = DisplayUnitsController(displayUnits);
     LatestTempController(latestTemp, selectedStation);
     StationsController(stations);
+    var selectedStationController = SelectedStationController(selectedStation);
 
-    Station("station-v2", selectedStation, stations);
+    Station("station-v2", selectedStation, stations, selectedStationController.onChange);
     DisplayUnits("choose-unit-v2", displayUnitsController.onChange);
     TempDisplay("latest-temp-v2", latestTemp, displayUnits);
   });

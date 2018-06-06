@@ -84,7 +84,7 @@ function DisplayUnits(id, onChange) {
 }
 
 /* exported Station */
-function Station(id, selectedStation, stations) {
+function Station(id, selectedStation, stations, onChangeStation) {
   var self;
   create();
   return self;
@@ -97,22 +97,29 @@ function Station(id, selectedStation, stations) {
 
     element.innerHTML =
       "<select id=\"choose-station-v2\" name=\"station\"></select>" +
-      "<a id=\"station-link-v2\" class=\"station-link\" href=\"#\"></a>" +
+      "<a id=\"station-link-v2\" class=\"station-link\" href=\"#\" " +
+      "   title=\"Go to this stations home page\" target=\"_blank\"></a>" +
       "<p id=\"station-error-v2\" class=\"station-error no-error\"></p>";
 
     self = {
       selectedStation: selectedStation,
       stations: stations,
       element: element,
-      selectElement: element.children[0]
+      selectElement: element.children[0],
+      homeLinkElement: element.children[1]
     };
 
-    setInitialStation.bind(self)();
+    setInitialStationChoice.bind(self)();
+    self.selectElement.addEventListener("change", function() {
+      onChangeStation(self.stations.get()[this.selectedIndex]);
+    });
+    setStationHomeLink();
 
     stations.watch(stationsUpdated.bind(self));
+    selectedStation.watch(selectedStationUpdated.bind(self));
   }
 
-  function setInitialStation() {
+  function setInitialStationChoice() {
     var opt = document.createElement("option");
     opt.value = self.selectedStation.get().id;
     opt.text = self.selectedStation.get().name;
@@ -131,5 +138,20 @@ function Station(id, selectedStation, stations) {
       }
       self.selectElement.add(opt);
     });
+  }
+
+  function setStationHomeLink() {
+    self.homeLinkElement.innerHTML = "Station: " + self.selectedStation.get().id;
+    self.homeLinkElement.setAttribute(
+      "href",
+      "https://tidesandcurrents.noaa.gov/stationhome.html?id=" + self.selectedStation.get().id
+    );
+  }
+
+  function selectedStationUpdated(before) {
+    if (self.selectedStation.get().id !== before.id) {
+      setStationHomeLink();
+      // if station selection could come from any other source then here we would have to update the choice...
+    }
   }
 }

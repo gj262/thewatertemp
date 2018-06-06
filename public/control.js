@@ -58,12 +58,18 @@ function DisplayUnitsController(displayUnits) {
     };
 
     self.onChange = onChange.bind(self);
+    self.displayUnits.watch(onUpdate);
   }
 
   function onChange(units) {
     if (self.displayUnits.get() !== units) {
-      localStorage.setItem("units", units);
       self.displayUnits.change(units);
+    }
+  }
+
+  function onUpdate(before) {
+    if (self.displayUnits.get() !== before) {
+      localStorage.setItem("units", self.displayUnits.get());
     }
   }
 }
@@ -110,6 +116,35 @@ function StationsController(stations) {
       self.stations.change(stations);
     } catch (e) {
       console.log(e);
+    }
+  }
+}
+
+/* exported SelectedStationController */
+function SelectedStationController(selectedStation) {
+  var self;
+  create();
+  return self;
+
+  function create() {
+    self = {
+      selectedStation: selectedStation
+    };
+
+    self.onChange = onChange.bind(self);
+    self.selectedStation.watch(onUpdate);
+  }
+
+  function onChange(selection) {
+    if (self.selectedStation.get().id !== selection.id) {
+      self.selectedStation.change(selection);
+    }
+  }
+
+  function onUpdate(before) {
+    if (self.selectedStation.get().id !== before.id) {
+      localStorage.setItem("stationId", self.selectedStation.get().id);
+      localStorage.setItem("stationName", self.selectedStation.get().name);
     }
   }
 }
