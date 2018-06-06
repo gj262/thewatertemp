@@ -292,7 +292,8 @@ function ThisDayInPriorYearsController(comparison, station) {
       comparison: comparison,
       station: station,
       todaysDate: todaysDate,
-      nextYearToFetch: todaysDate.getFullYear() - 1
+      nextYearToFetch: todaysDate.getFullYear() - 1,
+      consecutiveBlankYears: 0
     };
 
     fetchData();
@@ -337,6 +338,12 @@ function ThisDayInPriorYearsController(comparison, station) {
     self.nextYearToFetch = self.nextYearToFetch - 1;
 
     if (data) {
+      for (var i = self.consecutiveBlankYears; i > 0; i--) {
+        self.comparison.change({
+          title: self.comparison.get().title,
+          series: self.comparison.get().series.concat([{ title: forYear + i, noData: true }])
+        });
+      }
       self.consecutiveBlankYears = 0;
       var seriesItem = { title: forYear, range: Model(getRangeFromData(data)) };
       self.comparison.change({ title: self.comparison.get().title, series: self.comparison.get().series.concat([seriesItem]) });

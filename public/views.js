@@ -144,7 +144,11 @@ function ComparisonDisplay(id, comparison, displayUnits) {
         element.id = id;
         element.innerHTML = "<h2>" + item.title + "</h2>" + "<div id=\"" + id + "-range\"></div>";
         self.element.appendChild(element);
-        RangeDisplay(id + "-range", item.range, self.displayUnits);
+        if (item.range) {
+          RangeDisplay(id + "-range", item.range, self.displayUnits);
+        } else {
+          element.children[1].innerHTML = "<p>No data for this date.</p>";
+        }
       }
     });
   }
