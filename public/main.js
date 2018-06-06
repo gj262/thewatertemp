@@ -1,8 +1,4 @@
-/* global Model, 
-          LatestTempController, TwentyFourHourRangeController, DisplayUnitsController, 
-            StationsController, SelectedStationController, SevenDayComparisonController,
-            ThisDayInPriorYearsController,
-          Station, DisplayUnits, TempDisplay, RangeDisplay, ComparisonDisplay  */
+/* global Model, Controller, View */
 (function() {
   document.addEventListener("DOMContentLoaded", function() {
     var latestTemp = Model({});
@@ -17,18 +13,18 @@
     var sevenDayComparison = Model({ title: "For the last seven days", series: [] });
     var thisDayInPriorYearsComparison = Model({ title: "This day in prior years", series: [] });
 
-    var displayUnitsController = DisplayUnitsController(displayUnits);
-    LatestTempController(latestTemp, selectedStation, stationError);
-    TwentyFourHourRangeController(twentyFourHourRange, selectedStation);
-    StationsController(stations);
-    var selectedStationController = SelectedStationController(selectedStation);
-    SevenDayComparisonController(sevenDayComparison, selectedStation);
-    ThisDayInPriorYearsController(thisDayInPriorYearsComparison, selectedStation);
+    var displayUnitsController = Controller.DisplayUnits(displayUnits);
+    Controller.LatestTemp(latestTemp, selectedStation, stationError);
+    Controller.TwentyFourHourRange(twentyFourHourRange, selectedStation);
+    Controller.Stations(stations);
+    var selectedStationController = Controller.SelectedStation(selectedStation);
+    Controller.SevenDayComparison(sevenDayComparison, selectedStation);
+    Controller.ThisDayInPriorYears(thisDayInPriorYearsComparison, selectedStation);
 
-    Station("station", selectedStation, stationError, stations, selectedStationController.onChange);
-    DisplayUnits("choose-unit", displayUnitsController.onChange);
-    TempDisplay("latest-temp", latestTemp, displayUnits);
-    RangeDisplay("24-hours", twentyFourHourRange, displayUnits);
-    ComparisonDisplay("comparison", thisDayInPriorYearsComparison, displayUnits);
+    View.Station("station", selectedStation, stationError, stations, selectedStationController.onChange);
+    View.DisplayUnits("choose-unit", displayUnitsController.onChange);
+    View.Temperature("latest-temp", latestTemp, displayUnits);
+    View.Range("24-hours", twentyFourHourRange, displayUnits);
+    View.Comparison("comparison", thisDayInPriorYearsComparison, displayUnits);
   });
 })();

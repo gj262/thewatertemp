@@ -1,30 +1,34 @@
 /* exported Model */
-function Model(initialValue) {
-  var model = { id: 0, watchers: [], value: initialValue };
 
-  model.watch = function(toInvoke) {
-    model.watchers.push({ id: ++model.id, toInvoke: toInvoke });
-    return model.id;
-  };
+var Model = (function() {
+  function Model(initialValue) {
+    var model = { id: 0, watchers: [], value: initialValue };
 
-  model.remove = function(id) {
-    model.watchers = model.watchers.filter(function(watcher) {
-      return watcher.id !== id;
-    });
-    return model.id;
-  };
+    model.watch = function(toInvoke) {
+      model.watchers.push({ id: ++model.id, toInvoke: toInvoke });
+      return model.id;
+    };
 
-  model.change = function(payload) {
-    var before = model.value;
-    model.value = payload;
-    model.watchers.forEach(function(watcher) {
-      watcher.toInvoke(before);
-    });
-  };
+    model.remove = function(id) {
+      model.watchers = model.watchers.filter(function(watcher) {
+        return watcher.id !== id;
+      });
+      return model.id;
+    };
 
-  model.get = function() {
-    return model.value;
-  };
+    model.change = function(payload) {
+      var before = model.value;
+      model.value = payload;
+      model.watchers.forEach(function(watcher) {
+        watcher.toInvoke(before);
+      });
+    };
 
-  return model;
-}
+    model.get = function() {
+      return model.value;
+    };
+
+    return model;
+  }
+  return Model;
+})();
