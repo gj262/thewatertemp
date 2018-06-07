@@ -1,9 +1,10 @@
 module.exports = {
-  extends: "standard",
+  extends: ["eslint:recommended"],
   env: {
     browser: true
   },
   rules: {
+    "no-console": "off",
     "space-before-function-paren": "off",
     semi: "off",
     quotes: ["error", "double"],
