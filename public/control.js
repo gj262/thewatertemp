@@ -196,6 +196,40 @@ var Controller = (function() {
     }
   }
 
+  function SelectedComparison(selectedComparison, selectedStation) {
+    var self;
+    create();
+    return self;
+
+    function create() {
+      self = {
+        selectedComparison: selectedComparison,
+        selectedStation: selectedStation
+      };
+
+      self.onChange = onChange;
+      self.selectedComparison.watch(onUpdate);
+
+      self.selectedComparisonController = selectedComparison.get().Controller(selectedComparison, selectedStation);
+    }
+
+    function onChange(selection) {
+      if (self.selectedComparison.get().name !== selection.name) {
+        self.selectedComparisonController.destroy();
+        self.selectedComparison.change(selection);
+      }
+    }
+
+    function onUpdate(before) {
+      if (self.selectedComparison.get().name !== before.name) {
+        localStorage.setItem("comparisonName", self.selectedComparison.get().name);
+        self.selectedComparisonController = self.selectedComparison
+          .get()
+          .Controller(self.selectedComparison, self.selectedStation);
+      }
+    }
+  }
+
   function SevenDayComparison(comparison, station) {
     var self;
     create();
@@ -224,7 +258,7 @@ var Controller = (function() {
         });
       }
 
-      comparison.change({ title: comparison.get().title, series: series });
+      comparison.change({ series: series });
 
       var beginMS = nowMS - 7 * 24 * 60 * 60 * 1000;
       var beginDate = new Date(beginMS);
@@ -232,12 +266,13 @@ var Controller = (function() {
       self = {
         comparison: comparison,
         station: station,
-        beginDate: beginDate
+        beginDate: beginDate,
+        destroy: destroy
       };
 
       fetchData();
 
-      station.watch(function() {
+      self.stationWatchId = station.watch(function() {
         self.comparison.get().series.forEach(function(seriesItem) {
           seriesItem.range.change({});
         });
@@ -276,6 +311,10 @@ var Controller = (function() {
         });
       }
     }
+
+    function destroy() {
+      self.station.remove(self.stationWatchId);
+    }
   }
 
   function ThisDayInPriorYears(comparison, station) {
@@ -291,15 +330,16 @@ var Controller = (function() {
         station: station,
         todaysDate: todaysDate,
         nextYearToFetch: todaysDate.getFullYear() - 1,
-        consecutiveBlankYears: 0
+        consecutiveBlankYears: 0,
+        destroy: destroy
       };
 
       fetchData();
 
-      station.watch(function() {
+      self.stationWatchId = station.watch(function() {
         self.nextYearToFetch = todaysDate.getFullYear() - 1;
         self.consecutiveBlankYears = 0;
-        self.comparison.change({ title: self.comparison.get().title, series: [] });
+        self.comparison.change({ series: [] });
         fetchData();
       });
     }
@@ -340,13 +380,12 @@ var Controller = (function() {
       if (data) {
         for (var i = self.consecutiveBlankYears; i > 0; i--) {
           self.comparison.change({
-            title: self.comparison.get().title,
             series: self.comparison.get().series.concat([{ title: forYear + i, noData: true }])
           });
         }
         self.consecutiveBlankYears = 0;
         var seriesItem = { title: forYear, range: Model(getRangeFromData(data)) };
-        self.comparison.change({ title: self.comparison.get().title, series: self.comparison.get().series.concat([seriesItem]) });
+        self.comparison.change({ series: self.comparison.get().series.concat([seriesItem]) });
       } else {
         if (!self.consecutiveBlankYears) {
           self.consecutiveBlankYears = 1;
@@ -358,6 +397,10 @@ var Controller = (function() {
       if (!self.consecutiveBlankYears || self.consecutiveBlankYears < 3) {
         fetchData(self.stationId);
       }
+    }
+
+    function destroy() {
+      self.station.remove(self.stationWatchId);
     }
   }
 
@@ -393,6 +436,7 @@ var Controller = (function() {
     }
     return { min: min, avg: avg, max: max };
   }
+
   return {
     LatestTemp: LatestTemp,
     TwentyFourHourRange: TwentyFourHourRange,
@@ -400,6 +444,7 @@ var Controller = (function() {
     SevenDayComparison: SevenDayComparison,
     Stations: Stations,
     ThisDayInPriorYears: ThisDayInPriorYears,
-    SelectedStation: SelectedStation
+    SelectedStation: SelectedStation,
+    SelectedComparison: SelectedComparison
   };
 })();

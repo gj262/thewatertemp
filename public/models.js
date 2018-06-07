@@ -18,7 +18,11 @@ var Model = (function() {
 
     model.change = function(payload) {
       var before = model.value;
-      model.value = payload;
+      if (typeof payload === "object" && !Array.isArray(payload)) {
+        model.value = Object.assign({}, before, payload);
+      } else {
+        model.value = payload;
+      }
       model.watchers.forEach(function(watcher) {
         watcher.toInvoke(before);
       });

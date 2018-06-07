@@ -134,9 +134,11 @@ var View = (function() {
       render();
     }
 
-    function render() {
-      // note: this is in the business of creating, growing or removing
-      // but not item updates which would be handled by range updates.
+    function render(before) {
+      // note: item updates which would be handled by range updates.
+      if (before && before.name !== self.comparison.get().name) {
+        self.element.innerHTML = "";
+      }
       while (self.comparison.get().series.length < self.element.children.length) {
         self.element.removeChild(self.element.lastChild);
       }
@@ -158,11 +160,7 @@ var View = (function() {
     }
 
     function getIdForItem(item) {
-      return (
-        (self.comparison.get().title + "").toLowerCase().replace(/\s/g, "-") +
-        "-" +
-        (item.title + "").toLowerCase().replace(/\s/g, "-")
-      );
+      return self.comparison.get().name + "" + "-" + (item.title + "").toLowerCase().replace(/\s/g, "-");
     }
   }
 
@@ -270,11 +268,45 @@ var View = (function() {
     }
   }
 
+  function ChooseComparison(id, selectedComparison, comparisons, onChangeComparison) {
+    var self;
+    create();
+    return self;
+
+    function create() {
+      var element = document.getElementById(id);
+      if (!element) {
+        throw new Error("expected to find " + id);
+      }
+
+      self = {
+        selectedComparison: selectedComparison,
+        comparisons: comparisons,
+        element: element
+      };
+
+      self.comparisons.forEach(function(comparison) {
+        var opt = document.createElement("option");
+        opt.value = comparison.name;
+        opt.text = comparison.title;
+        if (self.selectedComparison.get().name === comparison.name) {
+          opt.setAttribute("selected", true);
+        }
+        self.element.add(opt);
+      });
+
+      self.element.addEventListener("change", function() {
+        onChangeComparison(self.comparisons[this.selectedIndex]);
+      });
+    }
+  }
+
   return {
+    Station: Station,
+    DisplayUnits: DisplayUnits,
     Temperature: Temperature,
     Range: Range,
-    Comparison: Comparison,
-    Station: Station,
-    DisplayUnits: DisplayUnits
+    ChooseComparison: ChooseComparison,
+    Comparison: Comparison
   };
 })();

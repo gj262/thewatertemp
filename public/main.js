@@ -10,21 +10,37 @@
     var displayUnits = Model(localStorage.getItem("units") || "us");
     var stations = Model([]);
     var stationError = Model("");
-    var sevenDayComparison = Model({ title: "For the last seven days", series: [] });
-    var thisDayInPriorYearsComparison = Model({ title: "This day in prior years", series: [] });
+    var sevenDayComparison = {
+      title: "For the last seven days",
+      name: "last-7-days",
+      series: [],
+      Controller: Controller.SevenDayComparison
+    };
+    var thisDayInPriorYearsComparison = {
+      title: "This day in prior years",
+      name: "day-in-prior-years",
+      series: [],
+      Controller: Controller.ThisDayInPriorYears
+    };
+    var comparisons = [sevenDayComparison, thisDayInPriorYearsComparison];
+    var selectedComparison = Model(
+      comparisons.find(function(comparison) {
+        return comparison.name === localStorage.getItem("comparisonName");
+      }) || comparisons[0]
+    );
 
     var displayUnitsController = Controller.DisplayUnits(displayUnits);
     Controller.LatestTemp(latestTemp, selectedStation, stationError);
     Controller.TwentyFourHourRange(twentyFourHourRange, selectedStation);
     Controller.Stations(stations);
     var selectedStationController = Controller.SelectedStation(selectedStation);
-    Controller.SevenDayComparison(sevenDayComparison, selectedStation);
-    Controller.ThisDayInPriorYears(thisDayInPriorYearsComparison, selectedStation);
+    var selectedComparisonController = Controller.SelectedComparison(selectedComparison, selectedStation);
 
     View.Station("station", selectedStation, stationError, stations, selectedStationController.onChange);
     View.DisplayUnits("choose-unit", displayUnitsController.onChange);
     View.Temperature("latest-temp", latestTemp, displayUnits);
     View.Range("24-hours", twentyFourHourRange, displayUnits);
-    View.Comparison("comparison", thisDayInPriorYearsComparison, displayUnits);
+    View.ChooseComparison("choose-comparison", selectedComparison, comparisons, selectedComparisonController.onChange);
+    View.Comparison("comparison", selectedComparison, displayUnits);
   });
 })();
