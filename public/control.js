@@ -72,14 +72,7 @@ var Controller = (function() {
     }
 
     function fetched(response) {
-      var data;
-      try {
-        var payload = response.responseText;
-        payload = JSON.parse(payload);
-        data = payload.data;
-      } catch (e) {
-        console.log(e);
-      }
+      var data = unpackData(response.responseText);
       if (data) {
         self.range.change(getRangeFromData(data));
       }
@@ -274,14 +267,8 @@ var Controller = (function() {
     }
 
     function fetched(response) {
-      var data;
-      try {
-        var payload = response.responseText;
-        payload = JSON.parse(payload);
-        data = payload.data;
-      } catch (e) {
-        console.log(e);
-      }
+      var data = unpackData(response.responseText);
+
       if (data) {
         self.comparison.get().series.forEach(function(seriesItem) {
           var rangeData = data.filter(function(datum) {
@@ -340,14 +327,7 @@ var Controller = (function() {
     }
 
     function fetched(response) {
-      var data;
-      try {
-        var payload = response.responseText;
-        payload = JSON.parse(payload);
-        data = payload.data;
-      } catch (e) {
-        console.log(e);
-      }
+      var data = unpackData(response.responseText);
 
       var forYear = self.nextYearToFetch;
       self.nextYearToFetch = self.nextYearToFetch - 1;
@@ -386,6 +366,18 @@ var Controller = (function() {
     });
     getData.open("GET", url);
     getData.send();
+  }
+
+  function unpackData(responseText) {
+    var data;
+    try {
+      var payload = responseText;
+      payload = JSON.parse(payload);
+      data = payload.data;
+    } catch (e) {
+      console.log(e);
+    }
+    return data;
   }
 
   function getBaseDataURL(stationId) {
