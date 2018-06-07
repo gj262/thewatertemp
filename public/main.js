@@ -36,7 +36,9 @@
     var selectedStationController = Controller.SelectedStation(selectedStation);
     var selectedComparisonController = Controller.SelectedComparison(selectedComparison, selectedStation);
 
-    View.Station("station", selectedStation, stationError, stations, selectedStationController.onChange);
+    View.ChooseStation("choose-station", selectedStation, stations, selectedStationController.onChange);
+    View.StationHomeLink("station-home-link", selectedStation);
+    View.StationError("station-error", stationError);
     View.DisplayUnits("choose-unit", displayUnitsController.onChange);
     View.Temperature("latest-temp", latestTemp, displayUnits);
     View.Range("24-hours", twentyFourHourRange, displayUnits);

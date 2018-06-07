@@ -180,7 +180,7 @@ var View = (function() {
     }
   }
 
-  function Station(id, selectedStation, stationError, stations, onChangeStation) {
+  function ChooseStation(id, selectedStation, stations, onChangeStation) {
     var self;
     create();
     return self;
@@ -191,32 +191,18 @@ var View = (function() {
         throw new Error("expected to find " + id);
       }
 
-      element.innerHTML =
-        "<select id=\"choose-station\" name=\"station\"></select>" +
-        "<a id=\"station-link\" class=\"station-link\" href=\"#\" " +
-        "   title=\"Go to this stations home page\" target=\"_blank\"></a>" +
-        "<p id=\"station-error\" class=\"station-error no-error\"></p>";
-
       self = {
         selectedStation: selectedStation,
-        stationError: stationError,
         stations: stations,
-        element: element,
-        selectElement: element.children[0],
-        homeLinkElement: element.children[1],
-        stationErrorElement: element.children[2]
+        element: element
       };
 
       setInitialStationChoice();
-      self.selectElement.addEventListener("change", function() {
+      self.element.addEventListener("change", function() {
         onChangeStation(self.stations.get()[this.selectedIndex]);
       });
-      setStationHomeLink();
-      setStationErrorMessage();
 
       stations.watch(stationsUpdated);
-      selectedStation.watch(selectedStationUpdated);
-      stationError.watch(setStationErrorMessage);
     }
 
     function setInitialStationChoice() {
@@ -224,11 +210,11 @@ var View = (function() {
       opt.value = self.selectedStation.get().id;
       opt.text = self.selectedStation.get().name;
       opt.setAttribute("selected", true);
-      self.selectElement.add(opt);
+      self.element.add(opt);
     }
 
     function stationsUpdated() {
-      self.selectElement.innerHTML = "";
+      self.element.innerHTML = "";
       self.stations.get().forEach(function(station) {
         var opt = document.createElement("option");
         opt.value = station.id;
@@ -236,20 +222,65 @@ var View = (function() {
         if (self.selectedStation.get().id === station.id) {
           opt.setAttribute("selected", true);
         }
-        self.selectElement.add(opt);
+        self.element.add(opt);
       });
+    }
+  }
+
+  function StationHomeLink(id, selectedStation) {
+    var self;
+    create();
+    return self;
+
+    function create() {
+      var element = document.getElementById(id);
+      if (!element) {
+        throw new Error("expected to find " + id);
+      }
+
+      self = {
+        selectedStation: selectedStation,
+        element: element
+      };
+
+      setStationHomeLink();
+      selectedStation.watch(selectedStationUpdated);
     }
 
     function setStationHomeLink() {
-      self.homeLinkElement.innerHTML = "Station: " + self.selectedStation.get().id;
-      self.homeLinkElement.setAttribute(
-        "href",
-        "https://tidesandcurrents.noaa.gov/stationhome.html?id=" + self.selectedStation.get().id
-      );
+      self.element.innerHTML = "Station: " + self.selectedStation.get().id;
+      self.element.setAttribute("href", "https://tidesandcurrents.noaa.gov/stationhome.html?id=" + self.selectedStation.get().id);
+    }
+
+    function selectedStationUpdated(before) {
+      if (self.selectedStation.get().id !== before.id) {
+        setStationHomeLink();
+      }
+    }
+  }
+
+  function StationError(id, stationError) {
+    var self;
+    create();
+    return self;
+
+    function create() {
+      var element = document.getElementById(id);
+      if (!element) {
+        throw new Error("expected to find " + id);
+      }
+
+      self = {
+        stationError: stationError,
+        element: element
+      };
+
+      setStationErrorMessage();
+      stationError.watch(setStationErrorMessage);
     }
 
     function setStationErrorMessage() {
-      var element = self.stationErrorElement;
+      var element = self.element;
       var error = self.stationError.get();
       if (error) {
         element.innerHTML = error;
@@ -257,13 +288,6 @@ var View = (function() {
       } else {
         element.innerHTML = "";
         element.classList.add("no-error");
-      }
-    }
-
-    function selectedStationUpdated(before) {
-      if (self.selectedStation.get().id !== before.id) {
-        setStationHomeLink();
-        // if station selection could come from any other source then here we would have to update the choice...
       }
     }
   }
@@ -302,7 +326,9 @@ var View = (function() {
   }
 
   return {
-    Station: Station,
+    ChooseStation: ChooseStation,
+    StationHomeLink: StationHomeLink,
+    StationError: StationError,
     DisplayUnits: DisplayUnits,
     Temperature: Temperature,
     Range: Range,
