@@ -24,12 +24,7 @@ var Controller = (function() {
     }
 
     function fetchData() {
-      var getCurrentTemp = new XMLHttpRequest();
-      getCurrentTemp.addEventListener("load", function() {
-        fetched(this);
-      });
-      getCurrentTemp.open("GET", getBaseDataURL(self.station.get().id) + "&date=latest");
-      getCurrentTemp.send();
+      fetch(getBaseDataURL(self.station.get().id) + "&date=latest", fetched);
     }
 
     function fetched(response) {
@@ -73,12 +68,7 @@ var Controller = (function() {
     }
 
     function fetchData() {
-      var getCurrentTemp = new XMLHttpRequest();
-      getCurrentTemp.addEventListener("load", function() {
-        fetched(this);
-      });
-      getCurrentTemp.open("GET", getBaseDataURL(self.station.get().id) + "&range=24");
-      getCurrentTemp.send();
+      fetch(getBaseDataURL(self.station.get().id) + "&range=24", fetched);
     }
 
     function fetched(response) {
@@ -92,6 +82,46 @@ var Controller = (function() {
       }
       if (data) {
         self.range.change(getRangeFromData(data));
+      }
+    }
+  }
+
+  function Stations(stations) {
+    var self;
+    create();
+    return self;
+
+    function create() {
+      self = {
+        stations: stations
+      };
+
+      self.fetchStations = fetchStations;
+      self.fetched = fetched;
+
+      self.fetchStations();
+    }
+
+    function fetchStations() {
+      fetch("http://tidesandcurrents.noaa.gov/mdapi/v0.6/webapi/stations.json?type=watertemp", fetched);
+    }
+
+    function fetched(response) {
+      try {
+        var payload = response.responseText;
+        payload = JSON.parse(payload);
+        var stations = payload.stations.map(function(station) {
+          return {
+            id: station.id,
+            name: station.name + (station.state ? ", " + station.state : "")
+          };
+        });
+        stations = stations.sort(function(a, b) {
+          return a.name.localeCompare(b.name);
+        });
+        self.stations.change(stations);
+      } catch (e) {
+        console.log(e);
       }
     }
   }
@@ -119,51 +149,6 @@ var Controller = (function() {
     function onUpdate(before) {
       if (self.displayUnits.get() !== before) {
         localStorage.setItem("units", self.displayUnits.get());
-      }
-    }
-  }
-
-  function Stations(stations) {
-    var self;
-    create();
-    return self;
-
-    function create() {
-      self = {
-        stations: stations
-      };
-
-      self.fetchStations = fetchStations;
-      self.fetched = fetched;
-
-      self.fetchStations();
-    }
-
-    function fetchStations() {
-      var getStations = new XMLHttpRequest();
-      getStations.addEventListener("load", function() {
-        self.fetched(this);
-      });
-      getStations.open("GET", "http://tidesandcurrents.noaa.gov/mdapi/v0.6/webapi/stations.json?type=watertemp");
-      getStations.send();
-    }
-
-    function fetched(response) {
-      try {
-        var payload = response.responseText;
-        payload = JSON.parse(payload);
-        var stations = payload.stations.map(function(station) {
-          return {
-            id: station.id,
-            name: station.name + (station.state ? ", " + station.state : "")
-          };
-        });
-        stations = stations.sort(function(a, b) {
-          return a.name.localeCompare(b.name);
-        });
-        self.stations.change(stations);
-      } catch (e) {
-        console.log(e);
       }
     }
   }
@@ -281,16 +266,11 @@ var Controller = (function() {
     }
 
     function fetchData() {
-      var getData = new XMLHttpRequest();
-      getData.addEventListener("load", function() {
-        fetched(this);
-      });
       var beginStr =
         self.beginDate.getFullYear() +
         (self.beginDate.getMonth() + 1 + "").padStart(2, "0") +
         (self.beginDate.getDate() + "").padStart(2, "0");
-      getData.open("GET", getBaseDataURL(self.station.get().id) + "&begin_date=" + beginStr + "&range=168");
-      getData.send();
+      fetch(getBaseDataURL(self.station.get().id) + "&begin_date=" + beginStr + "&range=168", fetched);
     }
 
     function fetched(response) {
@@ -345,16 +325,11 @@ var Controller = (function() {
     }
 
     function fetchData() {
-      var getData = new XMLHttpRequest();
-      getData.addEventListener("load", function() {
-        fetched(this);
-      });
       var beginStr =
         self.nextYearToFetch +
         (self.todaysDate.getMonth() + 1 + "").padStart(2, "0") +
         (getDateButFudgeLeapYear(self.todaysDate) + "").padStart(2, "0");
-      getData.open("GET", getBaseDataURL(self.station.get().id) + "&begin_date=" + beginStr + "&range=24");
-      getData.send();
+      fetch(getBaseDataURL(self.station.get().id) + "&begin_date=" + beginStr + "&range=24", fetched);
     }
 
     function getDateButFudgeLeapYear(date) {
@@ -402,6 +377,15 @@ var Controller = (function() {
     function destroy() {
       self.station.remove(self.stationWatchId);
     }
+  }
+
+  function fetch(url, whenFetched) {
+    var getData = new XMLHttpRequest();
+    getData.addEventListener("load", function() {
+      whenFetched(this);
+    });
+    getData.open("GET", url);
+    getData.send();
   }
 
   function getBaseDataURL(stationId) {

@@ -153,7 +153,7 @@ var View = (function() {
           if (item.range) {
             Range(id + "-range", item.range, self.displayUnits);
           } else {
-            element.children[1].innerHTML = "<p>No data for this date.</p>";
+            element.children[1].innerHTML = "<p>There is no data available for this date.</p>";
           }
         }
       });
