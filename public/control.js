@@ -96,7 +96,7 @@ var Controller = (function() {
     }
 
     function fetchStations() {
-      fetch("http://tidesandcurrents.noaa.gov/mdapi/v0.6/webapi/stations.json?type=watertemp", fetched);
+      fetch("https://tidesandcurrents.noaa.gov/mdapi/v0.6/webapi/stations.json?type=watertemp", fetched);
     }
 
     function fetched(response) {
@@ -161,7 +161,9 @@ var Controller = (function() {
 
       self.onChange = onChange;
       window.addEventListener("popstate", function(event) {
-        self.selectedStation.change(event.state && event.state.station ? event.state.station : getStationFromLocationOrDefaults());
+        self.selectedStation.change(
+          event.state && event.state.station ? event.state.station : getStationFromLocationOrDefaults()
+        );
       });
     }
 
