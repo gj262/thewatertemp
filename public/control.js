@@ -236,7 +236,7 @@ var Controller = (function() {
         });
       }
 
-      comparison.change({ series: series });
+      comparison.change({ series: series }, { augmentObject: true });
 
       var beginMS = nowMS - 7 * 24 * 60 * 60 * 1000;
       var beginDate = new Date(beginMS);
@@ -306,7 +306,7 @@ var Controller = (function() {
       self.stationWatchId = station.watch(function() {
         self.nextYearToFetch = todaysDate.getFullYear() - 1;
         self.consecutiveBlankYears = 0;
-        self.comparison.change({ series: [] });
+        self.comparison.change({ series: [] }, { augmentObject: true });
         fetchData();
       });
     }
@@ -334,13 +334,16 @@ var Controller = (function() {
 
       if (data) {
         for (var i = self.consecutiveBlankYears; i > 0; i--) {
-          self.comparison.change({
-            series: self.comparison.get().series.concat([{ title: forYear + i, noData: true }])
-          });
+          self.comparison.change(
+            {
+              series: self.comparison.get().series.concat([{ title: forYear + i, noData: true }])
+            },
+            { augmentObject: true }
+          );
         }
         self.consecutiveBlankYears = 0;
         var seriesItem = { title: forYear, range: Model(getRangeFromData(data)) };
-        self.comparison.change({ series: self.comparison.get().series.concat([seriesItem]) });
+        self.comparison.change({ series: self.comparison.get().series.concat([seriesItem]) }, { augmentObject: true });
       } else {
         if (!self.consecutiveBlankYears) {
           self.consecutiveBlankYears = 1;

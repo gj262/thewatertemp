@@ -16,9 +16,9 @@ var Model = (function() {
       return model.id;
     };
 
-    model.change = function(payload) {
+    model.change = function(payload, options) {
       var before = model.value;
-      if (typeof payload === "object" && !Array.isArray(payload)) {
+      if (options && options.augmentObject) {
         model.value = Object.assign({}, before, payload);
       } else {
         model.value = payload;
