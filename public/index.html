@@ -11,15 +11,24 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Noto+Sans" rel="stylesheet">
     <link href="style.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width" />
 </head>
 
 <body>
     <div class="wrap">
         <div class="center">
-            <span class="choose-unit" id="choose-unit">
-                <a href="#">&#8457;</a> or
-                <a href="#">&#8451;</a>
-            </span>
+            <img src="menu.svg" id="menu-toggle" class="menu-toggle" />
+            <ul id="menu" class="menu hidden">
+                <li>
+                    <span class="choose-unit" id="choose-unit">
+                        <a href="#">&#8457;</a> or
+                        <a href="#">&#8451;</a>
+                    </span>
+                </li>
+                <li>
+                    <a href="https://github.com/gj262/thewatertemp" target="_blank">About</a>
+                </li>
+            </ul>
             <h1>The Water Temperature</h1>
 
             <div>

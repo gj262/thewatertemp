@@ -10,9 +10,42 @@ body {
 
 .wrap > .center {
   width: 320px;
+  position: relative;
 }
 select {
   width: 328px;
+}
+
+img.menu-toggle {
+  float: right;
+  cursor: pointer;
+  margin-top: 3px;
+}
+
+.hidden {
+  display: none;
+}
+
+ul.menu {
+  position: absolute;
+  top: 27px;
+  right: 0px;
+  margin: 0;
+  list-style: none;
+  background: #fff;
+  padding: 10px;
+  border: 1px solid #ccc;
+  box-shadow: 1px 1px 2px #eee;
+}
+
+ul.menu > li {
+  padding: 5px;
+}
+ul.menu > li:hover {
+  background-color: #eee;
+}
+ul.menu > li:not(:last-child) {
+  margin-bottom: 10px;
 }
 
 h1,
@@ -36,11 +69,6 @@ h2 {
 select {
   margin-top: 30px;
   margin-left: -8px;
-}
-
-.choose-unit {
-  float: right;
-  font-size: 12px;
 }
 
 .station-home-link {

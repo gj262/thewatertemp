@@ -164,6 +164,55 @@ var View = (function() {
     }
   }
 
+  function Menu(openerId, bodyId) {
+    var self;
+    create();
+    return self;
+
+    function create() {
+      var openerElement = document.getElementById(openerId);
+      if (!openerElement) {
+        throw new Error("expected to find " + openerId);
+      }
+      var bodyElement = document.getElementById(bodyId);
+      if (!bodyElement) {
+        throw new Error("expected to find " + bodyId);
+      }
+
+      self = {
+        open: false,
+        bodyElement: bodyElement,
+        openerElement: openerElement
+      };
+
+      openerElement.addEventListener("click", toggleOpen);
+      document.addEventListener("click", closeIfOpen);
+    }
+
+    function toggleOpen() {
+      if (self.open) {
+        self.bodyElement.classList.add("hidden");
+      } else {
+        self.bodyElement.classList.remove("hidden");
+      }
+      self.open = !self.open;
+    }
+
+    function closeIfOpen(event) {
+      if (!self.open) {
+        return;
+      }
+      var element = event.target;
+      while (element) {
+        if (element === self.bodyElement || element === self.openerElement) {
+          return;
+        }
+        element = element.parentElement;
+      }
+      toggleOpen();
+    }
+  }
+
   function DisplayUnits(id, onChange) {
     var self;
     create();
@@ -326,6 +375,7 @@ var View = (function() {
   }
 
   return {
+    Menu: Menu,
     ChooseStation: ChooseStation,
     StationHomeLink: StationHomeLink,
     StationError: StationError,
