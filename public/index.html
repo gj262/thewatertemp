@@ -8,8 +8,9 @@
     <script type="text/javascript" src="control.js"></script>
     <script type="text/javascript" src="polyfila.js"></script>
     <script type="text/javascript" src="main.js"></script>
-    <link href="style.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Noto+Sans" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
 </head>
 
 <body>
@@ -20,8 +21,10 @@
     <h1>The Water Temperature</h1>
 
     <div>
-        <select id="choose-station" name="station"></select>
-        <a id="station-home-link" class="station-link" href="#" title="Go to this stations home page" target="_blank"></a>
+        <h2>
+            <select id="choose-station" name="station"></select>
+        </h2>
+        <a id="station-home-link" class="station-home-link" href="#" title="Go to this stations home page" target="_blank"></a>
         <p id="station-error" class="station-error no-error"></p>
     </div>
 
