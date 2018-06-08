@@ -3,10 +3,7 @@
   document.addEventListener("DOMContentLoaded", function() {
     var latestTemp = Model({});
     var twentyFourHourRange = Model({});
-    var selectedStation = Model({
-      id: localStorage.getItem("stationId") || "9414290",
-      name: localStorage.getItem("stationName") || "San Francisco, CA"
-    });
+    var selectedStation = Model({});
     var displayUnits = Model(localStorage.getItem("units") || "us");
     var stations = Model([]);
     var stationError = Model("");
@@ -29,11 +26,11 @@
       }) || comparisons[0]
     );
 
+    var selectedStationController = Controller.SelectedStation(selectedStation);
     var displayUnitsController = Controller.DisplayUnits(displayUnits);
     Controller.LatestTemp(latestTemp, selectedStation, stationError);
     Controller.TwentyFourHourRange(twentyFourHourRange, selectedStation);
     Controller.Stations(stations);
-    var selectedStationController = Controller.SelectedStation(selectedStation);
     var selectedComparisonController = Controller.SelectedComparison(selectedComparison, selectedStation);
 
     View.Menu("menu-toggle", "menu");

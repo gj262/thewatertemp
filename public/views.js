@@ -252,6 +252,7 @@ var View = (function() {
       });
 
       stations.watch(stationsUpdated);
+      selectedStation.watch(selectedStationUpdated);
     }
 
     function setInitialStationChoice() {
@@ -273,6 +274,20 @@ var View = (function() {
         }
         self.element.add(opt);
       });
+    }
+
+    function selectedStationUpdated(before) {
+      if (self.selectedStation.get().id !== before.id) {
+        for (var i = 0; i < self.element.children.length; i++) {
+          var opt = self.element.children[i];
+          if (opt.value === self.selectedStation.get().id) {
+            opt.setAttribute("selected", true);
+            self.element.selectedIndex = i;
+          } else {
+            opt.removeAttribute("selected");
+          }
+        }
+      }
     }
   }
 

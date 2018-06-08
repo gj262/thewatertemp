@@ -152,24 +152,33 @@ var Controller = (function() {
     return self;
 
     function create() {
+      var initialStation = getStationFromLocationOrDefaults();
+      selectedStation.change(initialStation);
+
       self = {
         selectedStation: selectedStation
       };
 
       self.onChange = onChange;
-      self.selectedStation.watch(onUpdate);
+      window.addEventListener("popstate", function(event) {
+        self.selectedStation.change(event.state && event.state.station ? event.state.station : getStationFromLocationOrDefaults());
+      });
+    }
+
+    function getStationFromLocationOrDefaults() {
+      if (document.location.pathname.length > 1) {
+        return { id: document.location.pathname.substr(1), name: "" };
+      }
+      return {
+        id: "9414290",
+        name: "San Francisco, CA"
+      };
     }
 
     function onChange(selection) {
       if (self.selectedStation.get().id !== selection.id) {
+        history.pushState({ station: selection }, "", "/" + selection.id);
         self.selectedStation.change(selection);
-      }
-    }
-
-    function onUpdate(before) {
-      if (self.selectedStation.get().id !== before.id) {
-        localStorage.setItem("stationId", self.selectedStation.get().id);
-        localStorage.setItem("stationName", self.selectedStation.get().name);
       }
     }
   }
