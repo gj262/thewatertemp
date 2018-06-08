@@ -17,6 +17,9 @@ var Controller = (function() {
       fetchData();
 
       station.watch(function() {
+        if (self.dataRequest) {
+          self.dataRequest.abort();
+        }
         self.temp.change({});
         self.error.change("");
         fetchData();
@@ -24,10 +27,11 @@ var Controller = (function() {
     }
 
     function fetchData() {
-      fetch(getBaseDataURL(self.station.get().id) + "&date=latest", fetched);
+      self.dataRequest = fetch(getBaseDataURL(self.station.get().id) + "&date=latest", fetched);
     }
 
     function fetched(response) {
+      self.dataRequest = null;
       var value;
       var time;
       try {
@@ -62,16 +66,20 @@ var Controller = (function() {
       fetchData();
 
       station.watch(function() {
+        if (self.dataRequest) {
+          self.dataRequest.abort();
+        }
         self.range.change({});
         fetchData();
       });
     }
 
     function fetchData() {
-      fetch(getBaseDataURL(self.station.get().id) + "&range=24", fetched);
+      self.dataRequest = fetch(getBaseDataURL(self.station.get().id) + "&range=24", fetched);
     }
 
     function fetched(response) {
+      self.dataRequest = null;
       var data = unpackData(response.responseText);
       if (data) {
         self.range.change(getRangeFromData(data));
@@ -297,6 +305,9 @@ var Controller = (function() {
       fetchData();
 
       self.stationWatchId = station.watch(function() {
+        if (self.dataRequest) {
+          self.dataRequest.abort();
+        }
         self.comparison.get().series.forEach(function(seriesItem) {
           seriesItem.range.change({});
         });
@@ -309,10 +320,11 @@ var Controller = (function() {
         self.beginDate.getFullYear() +
         (self.beginDate.getMonth() + 1 + "").padStart(2, "0") +
         (self.beginDate.getDate() + "").padStart(2, "0");
-      fetch(getBaseDataURL(self.station.get().id) + "&begin_date=" + beginStr + "&range=168", fetched);
+      self.dataRequest = fetch(getBaseDataURL(self.station.get().id) + "&begin_date=" + beginStr + "&range=168", fetched);
     }
 
     function fetched(response) {
+      self.dataRequest = null;
       var data = unpackData(response.responseText);
 
       if (data) {
@@ -350,6 +362,9 @@ var Controller = (function() {
       fetchData();
 
       self.stationWatchId = station.watch(function() {
+        if (self.dataRequest) {
+          self.dataRequest.abort();
+        }
         self.nextYearToFetch = todaysDate.getFullYear() - 1;
         self.consecutiveBlankYears = 0;
         self.comparison.change({ series: [] }, { augmentObject: true });
@@ -362,7 +377,7 @@ var Controller = (function() {
         self.nextYearToFetch +
         (self.todaysDate.getMonth() + 1 + "").padStart(2, "0") +
         (getDateButFudgeLeapYear(self.todaysDate) + "").padStart(2, "0");
-      fetch(getBaseDataURL(self.station.get().id) + "&begin_date=" + beginStr + "&range=24", fetched);
+      self.dataRequest = fetch(getBaseDataURL(self.station.get().id) + "&begin_date=" + beginStr + "&range=24", fetched);
     }
 
     function getDateButFudgeLeapYear(date) {
@@ -373,6 +388,7 @@ var Controller = (function() {
     }
 
     function fetched(response) {
+      self.dataRequest = null;
       var data = unpackData(response.responseText);
 
       var forYear = self.nextYearToFetch;
@@ -415,6 +431,7 @@ var Controller = (function() {
     });
     getData.open("GET", url);
     getData.send();
+    return getData;
   }
 
   function unpackData(responseText) {
