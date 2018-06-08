@@ -1,16 +1,46 @@
-* {
+body {
   font-family: "Noto Sans", sans-serif;
   font-size: 18px;
 }
 
+.wrap {
+  display: flex;
+  justify-content: space-around;
+}
+
+.wrap > .center {
+  width: 320px;
+}
+select {
+  width: 328px;
+}
+
 h1,
-h2 {
+h2,
+select {
   font-size: 24px;
   font-weight: normal;
 }
 
+h1 {
+  margin: 0px;
+}
+
+h2 {
+  background-color: #eee;
+  padding: 8px;
+  border-radius: 5px;
+  margin: 20px 0px 10px -8px;
+}
+
+select {
+  margin-top: 30px;
+  margin-left: -8px;
+}
+
 .choose-unit {
   float: right;
+  font-size: 12px;
 }
 
 .station-home-link {
@@ -21,8 +51,12 @@ h2 {
   display: none;
 }
 
+.temp-range {
+  display: flex;
+  justify-content: space-between;
+}
+
 .temp-range > .temp-display {
-  width: 30vw;
   display: inline-block;
 }
 
