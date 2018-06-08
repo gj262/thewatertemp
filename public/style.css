@@ -41,9 +41,6 @@ ul.menu {
 ul.menu > li {
   padding: 5px;
 }
-ul.menu > li:hover {
-  background-color: #eee;
-}
 ul.menu > li:not(:last-child) {
   margin-bottom: 10px;
 }
@@ -69,6 +66,7 @@ h2 {
 select {
   margin-top: 30px;
   margin-left: -8px;
+  background-color: #eee;
 }
 
 .station-home-link {
