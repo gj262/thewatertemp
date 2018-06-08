@@ -386,6 +386,21 @@ var View = (function() {
       self.element.addEventListener("change", function() {
         onChangeComparison(self.comparisons[this.selectedIndex]);
       });
+      selectedComparison.watch(selectedComparisonUpdated);
+    }
+
+    function selectedComparisonUpdated(before) {
+      if (self.selectedComparison.get().name !== before.name) {
+        for (var i = 0; i < self.element.children.length; i++) {
+          var opt = self.element.children[i];
+          if (opt.value === self.selectedComparison.get().name) {
+            opt.setAttribute("selected", true);
+            self.element.selectedIndex = i;
+          } else {
+            opt.removeAttribute("selected");
+          }
+        }
+      }
     }
   }
 

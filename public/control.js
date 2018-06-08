@@ -161,15 +161,17 @@ var Controller = (function() {
 
       self.onChange = onChange;
       window.addEventListener("popstate", function(event) {
-        self.selectedStation.change(
-          event.state && event.state.station ? event.state.station : getStationFromLocationOrDefaults()
-        );
+        var station = event.state && event.state.station ? event.state.station : getStationFromLocationOrDefaults();
+        if (station.id !== self.selectedStation.get().id) {
+          self.selectedStation.change(station);
+        }
       });
     }
 
     function getStationFromLocationOrDefaults() {
-      if (document.location.pathname.length > 1) {
-        return { id: document.location.pathname.substr(1), name: "" };
+      var url = new URL(document.location.href);
+      if (url.pathname.length > 1) {
+        return { id: url.pathname.substr(1), name: "" };
       }
       return {
         id: "9414290",
@@ -179,43 +181,76 @@ var Controller = (function() {
 
     function onChange(selection) {
       if (self.selectedStation.get().id !== selection.id) {
-        history.pushState({ station: selection }, "", "/" + selection.id);
+        var url = new URL(document.location.href);
+        url.pathname = "/" + selection.id;
+        history.pushState(Object.assign({}, history.state, { station: selection }), "", url.href);
         self.selectedStation.change(selection);
       }
     }
   }
 
-  function SelectedComparison(selectedComparison, selectedStation) {
+  function SelectedComparison(selectedComparison, selectedStation, comparisons) {
     var self;
     create();
     return self;
 
     function create() {
+      var initialComparison = getComparisonFromLocationOrDefaults(comparisons);
+      selectedComparison.change(initialComparison);
+
       self = {
         selectedComparison: selectedComparison,
-        selectedStation: selectedStation
+        selectedStation: selectedStation,
+        comparisons: comparisons
       };
 
       self.onChange = onChange;
-      self.selectedComparison.watch(onUpdate);
+      window.addEventListener("popstate", function(event) {
+        var comparison;
+        if (event.state && event.state.comparisonName) {
+          comparison =
+            comparisons.find(function(comparison) {
+              return comparison.name === event.state.comparisonName;
+            }) || comparisons[0];
+        } else {
+          comparison = getComparisonFromLocationOrDefaults(comparisons);
+        }
+        if (comparison.name !== self.selectedComparison.get().name) {
+          changeTo(comparison);
+        }
+      });
 
       self.selectedComparisonController = selectedComparison.get().Controller(selectedComparison, selectedStation);
     }
 
+    function getComparisonFromLocationOrDefaults(comparisons) {
+      var url = new URL(document.location.href);
+      if (url.searchParams.has("compared-with")) {
+        return (
+          comparisons.find(function(comparison) {
+            return comparison.name === url.searchParams.get("compared-with");
+          }) || comparisons[0]
+        );
+      }
+
+      return comparisons[0];
+    }
+
     function onChange(selection) {
       if (self.selectedComparison.get().name !== selection.name) {
-        self.selectedComparisonController.destroy();
-        self.selectedComparison.change(selection);
+        var url = new URL(document.location.href);
+        url.searchParams.set("compared-with", selection.name);
+        history.pushState(Object.assign({}, history.state, { comparisonName: selection.name }), "", url.href);
+        changeTo(selection);
       }
     }
 
-    function onUpdate(before) {
-      if (self.selectedComparison.get().name !== before.name) {
-        localStorage.setItem("comparisonName", self.selectedComparison.get().name);
-        self.selectedComparisonController = self.selectedComparison
-          .get()
-          .Controller(self.selectedComparison, self.selectedStation);
-      }
+    function changeTo(comparison) {
+      self.selectedComparisonController.destroy();
+      self.selectedComparison.change(comparison);
+      self.selectedComparisonController = self.selectedComparison
+        .get()
+        .Controller(self.selectedComparison, self.selectedStation, self.comparisons);
     }
   }
 

@@ -20,18 +20,14 @@
       Controller: Controller.ThisDayInPriorYears
     };
     var comparisons = [sevenDayComparison, thisDayInPriorYearsComparison];
-    var selectedComparison = Model(
-      comparisons.find(function(comparison) {
-        return comparison.name === localStorage.getItem("comparisonName");
-      }) || comparisons[0]
-    );
+    var selectedComparison = Model();
 
     var selectedStationController = Controller.SelectedStation(selectedStation);
+    var selectedComparisonController = Controller.SelectedComparison(selectedComparison, selectedStation, comparisons);
     var displayUnitsController = Controller.DisplayUnits(displayUnits);
     Controller.LatestTemp(latestTemp, selectedStation, stationError);
     Controller.TwentyFourHourRange(twentyFourHourRange, selectedStation);
     Controller.Stations(stations);
-    var selectedComparisonController = Controller.SelectedComparison(selectedComparison, selectedStation);
 
     View.Menu("menu-toggle", "menu");
     View.ChooseStation("choose-station", selectedStation, stations, selectedStationController.onChange);
