@@ -1,8 +1,8 @@
 {
   "name": "thewatertemp",
   "version": "0.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "A view of water temperature data provided by NOAA CO-OPS",
+  "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
