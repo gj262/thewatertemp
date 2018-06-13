@@ -6,6 +6,8 @@ NOAA has a number of monitoring stations throughout the US that collect water te
 
 It is designed to work on small i.e. phone screens.
 
+![screen](screenshot.jpg)
+
 ## Why?
 
 For more on the mechanics...
