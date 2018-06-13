@@ -8,6 +8,13 @@ It is designed to work on small screens i.e. phones.
 
 ![screen](screenshot.jpg)
 
+## To Do
+
+* A bit of color would be nice
+* Better error and loading handling
+* Maybe some caching
+* Search/Filter stations -v- the select/options
+
 ## Why?
 
 For more on the mechanics...
