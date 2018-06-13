@@ -11,6 +11,7 @@ It is designed to work on small screens i.e. phones.
 ## To Do
 
 * A bit of color would be nice
+* Something for larger screens (maybe side by side N station viewing)
 * Better error and loading handling
 * Maybe some caching
 * Search/Filter stations -v- the select/options
