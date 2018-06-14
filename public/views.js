@@ -164,7 +164,7 @@ var View = (function() {
     }
   }
 
-  function Menu(openerId, bodyId, toggleOrOpen) {
+  function Menu(openerId, bodyId, toggleOrOpen, onClose) {
     var self;
     create();
     return self;
@@ -202,9 +202,12 @@ var View = (function() {
       item.addEventListener("click", itemClicked.bind({}, item, onClick));
       if (selected) {
         item.classList.add("selected");
-        self.selectedItem = item;
       }
       self.bodyElement.appendChild(item);
+      if (selected) {
+        self.selectedItem = item;
+        self.bodyElement.scrollTop = self.selectedItem.offsetTop - self.bodyElement.clientHeight / 2;
+      }
       return item;
     }
 
@@ -231,6 +234,9 @@ var View = (function() {
     function close() {
       self.bodyElement.classList.add("hidden");
       self.open = false;
+      if (onClose) {
+        onClose();
+      }
     }
 
     function toggle() {
@@ -287,11 +293,12 @@ var View = (function() {
         selectedStation: selectedStation,
         stations: stations,
         element: element,
-        menu: Menu(id, "station-menu", false)
+        menu: Menu(id, "station-menu", false, onClose)
       };
 
       selectedStation.watch(selectedStationUpdated);
       stations.watch(stationsUpdated);
+      element.addEventListener("input", onInput);
     }
 
     function selectedStationUpdated(before) {
@@ -301,10 +308,30 @@ var View = (function() {
     }
 
     function stationsUpdated() {
+      updateMenu();
+    }
+
+    function updateMenu() {
       self.menu.removeAllItems();
       self.stations.get().forEach(function(station) {
         self.menu.addItem(station.name, self.selectedStation.get().name === station.name, onChangeStation.bind({}, station));
       });
+    }
+
+    function onInput() {
+      self.menu.removeAllItems();
+      var value = self.element.value || "";
+      value = value.toLowerCase();
+      self.stations.get().forEach(function(station) {
+        if (station.name.toLowerCase().indexOf(value) !== -1) {
+          self.menu.addItem(station.name, self.selectedStation.get().name === station.name, onChangeStation.bind({}, station));
+        }
+      });
+    }
+
+    function onClose() {
+      self.element.value = self.selectedStation.get().name;
+      updateMenu();
     }
   }
 

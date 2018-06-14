@@ -44,6 +44,7 @@ ul.menu > li:not(:last-child) {
 
 ul.menu > li.item:hover {
   background-color: #f0f0f0;
+  cursor: pointer;
 }
 ul.menu > li.item.selected {
   background-color: #eee;
@@ -80,8 +81,19 @@ input.choose-station {
   border: none;
   border: 1px solid #aaa;
   border-radius: 5px;
+  cursor: default;
+  text-overflow: ellipsis;
 }
 
+.input-caret {
+  position: absolute;
+  top: 45px;
+  right: 8px;
+  font-size: 14px;
+  pointer-events: none;
+}
+
+.station-input-wrap,
 .station-menu-wrap {
   position: relative;
 }
