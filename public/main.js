@@ -22,14 +22,14 @@
     var comparisons = [sevenDayComparison, thisDayInPriorYearsComparison];
     var selectedComparison = Model();
 
-    var selectedStationController = Controller.SelectedStation(selectedStation);
+    var selectedStationController = Controller.SelectedStation(selectedStation, stations);
     var selectedComparisonController = Controller.SelectedComparison(selectedComparison, selectedStation, comparisons);
     var displayUnitsController = Controller.DisplayUnits(displayUnits);
     Controller.LatestTemp(latestTemp, selectedStation, stationError);
     Controller.TwentyFourHourRange(twentyFourHourRange, selectedStation);
     Controller.Stations(stations);
 
-    View.Menu("menu-toggle", "menu");
+    View.Menu("menu-toggle", "menu", true);
     View.ChooseStation("choose-station", selectedStation, stations, selectedStationController.onChange);
     View.StationHomeLink("station-home-link", selectedStation);
     View.StationError("station-error", stationError);

@@ -164,7 +164,7 @@ var View = (function() {
     }
   }
 
-  function Menu(openerId, bodyId) {
+  function Menu(openerId, bodyId, toggleOrOpen, onClose) {
     var self;
     create();
     return self;
@@ -182,23 +182,72 @@ var View = (function() {
       self = {
         open: false,
         bodyElement: bodyElement,
-        openerElement: openerElement
+        openerElement: openerElement,
+        removeAllItems: removeAllItems,
+        addItem: addItem
       };
 
-      openerElement.addEventListener("click", toggleOpen);
-      document.addEventListener("click", closeIfOpen);
+      openerElement.addEventListener("click", toggleOrOpen ? toggle : open);
+      document.addEventListener("click", closeIfOpenOnExternalClick);
     }
 
-    function toggleOpen() {
-      if (self.open) {
-        self.bodyElement.classList.add("hidden");
-      } else {
-        self.bodyElement.classList.remove("hidden");
+    function removeAllItems() {
+      self.bodyElement.innerHTML = "";
+    }
+
+    function addItem(innerHTML, selected, onClick) {
+      var item = document.createElement("li");
+      item.innerHTML = innerHTML;
+      item.classList.add("item");
+      item.addEventListener("click", itemClicked.bind({}, item, onClick));
+      if (selected) {
+        item.classList.add("selected");
       }
-      self.open = !self.open;
+      self.bodyElement.appendChild(item);
+      if (selected) {
+        self.selectedItem = item;
+        self.bodyElement.scrollTop = self.selectedItem.offsetTop - self.bodyElement.clientHeight / 2;
+      }
+      return item;
     }
 
-    function closeIfOpen(event) {
+    function itemClicked(item, onClick) {
+      if (self.selectedItem) {
+        self.selectedItem.classList.remove("selected");
+      }
+      item.classList.add("selected");
+      self.selectedItem = item;
+      if (onClick) {
+        onClick();
+      }
+      close();
+    }
+
+    function open() {
+      self.bodyElement.classList.remove("hidden");
+      if (self.selectedItem) {
+        self.bodyElement.scrollTop = self.selectedItem.offsetTop - self.bodyElement.clientHeight / 2;
+      }
+      self.open = true;
+    }
+
+    function close() {
+      self.bodyElement.classList.add("hidden");
+      self.open = false;
+      if (onClose) {
+        onClose();
+      }
+    }
+
+    function toggle() {
+      if (self.open) {
+        close();
+      } else {
+        open();
+      }
+    }
+
+    function closeIfOpenOnExternalClick(event) {
       if (!self.open) {
         return;
       }
@@ -209,7 +258,7 @@ var View = (function() {
         }
         element = element.parentElement;
       }
-      toggleOpen();
+      close();
     }
   }
 
@@ -243,51 +292,48 @@ var View = (function() {
       self = {
         selectedStation: selectedStation,
         stations: stations,
-        element: element
+        element: element,
+        menu: Menu(id, "station-menu", false, onClose)
       };
 
-      setInitialStationChoice();
-      self.element.addEventListener("change", function() {
-        onChangeStation(self.stations.get()[this.selectedIndex]);
-      });
-
-      stations.watch(stationsUpdated);
       selectedStation.watch(selectedStationUpdated);
-    }
+      stations.watch(stationsUpdated);
+      element.addEventListener("input", onInput);
 
-    function setInitialStationChoice() {
-      var opt = document.createElement("option");
-      opt.value = self.selectedStation.get().id;
-      opt.text = self.selectedStation.get().name;
-      opt.setAttribute("selected", true);
-      self.element.add(opt);
-    }
-
-    function stationsUpdated() {
-      self.element.innerHTML = "";
-      self.stations.get().forEach(function(station) {
-        var opt = document.createElement("option");
-        opt.value = station.id;
-        opt.text = station.name;
-        if (self.selectedStation.get().id === station.id) {
-          opt.setAttribute("selected", true);
-        }
-        self.element.add(opt);
-      });
+      self.element.value = self.selectedStation.get().name || "Loading...";
     }
 
     function selectedStationUpdated(before) {
-      if (self.selectedStation.get().id !== before.id) {
-        for (var i = 0; i < self.element.children.length; i++) {
-          var opt = self.element.children[i];
-          if (opt.value === self.selectedStation.get().id) {
-            opt.setAttribute("selected", true);
-            self.element.selectedIndex = i;
-          } else {
-            opt.removeAttribute("selected");
-          }
-        }
+      if (self.selectedStation.get().name !== before.name) {
+        self.element.value = self.selectedStation.get().name;
       }
+    }
+
+    function stationsUpdated() {
+      updateMenu();
+    }
+
+    function updateMenu() {
+      self.menu.removeAllItems();
+      self.stations.get().forEach(function(station) {
+        self.menu.addItem(station.name, self.selectedStation.get().name === station.name, onChangeStation.bind({}, station));
+      });
+    }
+
+    function onInput() {
+      self.menu.removeAllItems();
+      var value = self.element.value || "";
+      value = value.toLowerCase();
+      self.stations.get().forEach(function(station) {
+        if (station.name.toLowerCase().indexOf(value) !== -1) {
+          self.menu.addItem(station.name, self.selectedStation.get().name === station.name, onChangeStation.bind({}, station));
+        }
+      });
+    }
+
+    function onClose() {
+      self.element.value = self.selectedStation.get().name;
+      updateMenu();
     }
   }
 

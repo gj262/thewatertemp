@@ -32,7 +32,16 @@
             <h1>The Water Temperature</h1>
 
             <div>
-                <select id="choose-station" name="station"></select>
+                <div class="station-input-wrap">
+                    <input type="text" id="choose-station" name="station" placeholder="Select a station or type ..." title="Click to select a station or type something to find a match."
+                        class="choose-station"></input>
+                    <img src="search.svg" class="input-search" />
+                </div>
+
+                <div class="station-menu-wrap">
+                    <ul id="station-menu" class="menu station-menu hidden">
+                    </ul>
+                </div>
                 <a id="station-home-link" class="station-home-link" href="#" title="Go to this stations home page" target="_blank"></a>
                 <p id="station-error" class="station-error no-error"></p>
             </div>
