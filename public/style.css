@@ -74,15 +74,16 @@ select,
 input.choose-station {
   margin-top: 30px;
   background-color: #eee;
+  border: none;
+  border-radius: 5px;
+  border: 1px solid #000;
 }
 
 input.choose-station {
-  padding: 8px;
-  border: none;
-  border: 1px solid #aaa;
-  border-radius: 5px;
+  padding: 0px 8px;
   cursor: default;
   text-overflow: ellipsis;
+  line-height: 1.5;
 }
 
 .input-caret {
