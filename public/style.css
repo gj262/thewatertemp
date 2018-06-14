@@ -82,7 +82,6 @@ input.choose-station {
 input.choose-station {
   padding: 0px 8px;
   cursor: default;
-  text-overflow: ellipsis;
   line-height: 1.5;
 }
 
@@ -91,6 +90,8 @@ input.choose-station {
   top: 37px;
   right: 8px;
   pointer-events: none;
+  background-color: #eee;
+  padding-left: 8px;
 }
 
 .station-input-wrap,

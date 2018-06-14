@@ -299,7 +299,8 @@ var View = (function() {
       selectedStation.watch(selectedStationUpdated);
       stations.watch(stationsUpdated);
       element.addEventListener("input", onInput);
-      self.element.value = "Loading...";
+
+      self.element.value = self.selectedStation.get().name || "Loading...";
     }
 
     function selectedStationUpdated(before) {
