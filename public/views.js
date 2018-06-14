@@ -299,6 +299,7 @@ var View = (function() {
       selectedStation.watch(selectedStationUpdated);
       stations.watch(stationsUpdated);
       element.addEventListener("input", onInput);
+      self.element.value = "Loading...";
     }
 
     function selectedStationUpdated(before) {

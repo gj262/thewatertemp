@@ -86,11 +86,10 @@ input.choose-station {
   line-height: 1.5;
 }
 
-.input-caret {
+.input-search {
   position: absolute;
-  top: 45px;
+  top: 37px;
   right: 8px;
-  font-size: 14px;
   pointer-events: none;
 }
 
