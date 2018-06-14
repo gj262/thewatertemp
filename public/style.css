@@ -12,9 +12,6 @@ body {
   width: 320px;
   position: relative;
 }
-select {
-  width: 328px;
-}
 
 img.menu-toggle {
   float: right;
@@ -33,7 +30,7 @@ ul.menu {
   margin: 0;
   list-style: none;
   background: #fff;
-  padding: 10px;
+  padding: 8px;
   border: 1px solid #ccc;
   box-shadow: 1px 1px 2px #eee;
 }
@@ -45,9 +42,18 @@ ul.menu > li:not(:last-child) {
   margin-bottom: 10px;
 }
 
+ul.menu > li.item:hover {
+  background-color: #f0f0f0;
+}
+ul.menu > li.item.selected {
+  background-color: #eee;
+}
+
 h1,
 h2,
-select {
+select,
+input.choose-station,
+ul.station-menu {
   font-size: 24px;
   font-weight: normal;
 }
@@ -63,10 +69,28 @@ h2 {
   margin: 20px 0px 10px -8px;
 }
 
-select {
+select,
+input.choose-station {
   margin-top: 30px;
-  margin-left: -8px;
   background-color: #eee;
+}
+
+input.choose-station {
+  padding: 8px;
+  border: none;
+  border: 1px solid #aaa;
+  border-radius: 5px;
+}
+
+.station-menu-wrap {
+  position: relative;
+}
+
+ul.station-menu {
+  top: 0px;
+  left: 0px;
+  height: 400px;
+  overflow: auto;
 }
 
 .station-home-link {
@@ -100,4 +124,12 @@ select {
 
 .temp-caption {
   display: block;
+}
+
+select,
+input.choose-station,
+ul.station-menu {
+  width: 328px;
+  margin-left: -8px;
+  box-sizing: border-box;
 }

@@ -154,7 +154,7 @@ var Controller = (function() {
     }
   }
 
-  function SelectedStation(selectedStation) {
+  function SelectedStation(selectedStation, stations) {
     var self;
     create();
     return self;
@@ -164,7 +164,8 @@ var Controller = (function() {
       selectedStation.change(initialStation);
 
       self = {
-        selectedStation: selectedStation
+        selectedStation: selectedStation,
+        stations: stations
       };
 
       self.onChange = onChange;
@@ -174,6 +175,7 @@ var Controller = (function() {
           self.selectedStation.change(station);
         }
       });
+      stations.watch(stationsUpdated);
     }
 
     function getStationFromLocationOrDefaults() {
@@ -193,6 +195,17 @@ var Controller = (function() {
         url.pathname = "/" + selection.id;
         history.pushState(Object.assign({}, history.state, { station: selection }), "", url.href);
         self.selectedStation.change(selection);
+      }
+    }
+
+    function stationsUpdated() {
+      if (self.selectedStation.get().name === "") {
+        // when initialized from a URL, the name is unknown
+        for (var i = 0; i < self.stations.get().length; i++) {
+          if (self.selectedStation.get().id === self.stations.get()[i].id) {
+            self.selectedStation.change(self.stations.get()[i]);
+          }
+        }
       }
     }
   }
