@@ -33,6 +33,7 @@ ul.menu {
   padding: 8px;
   border: 1px solid #ccc;
   box-shadow: 1px 1px 2px #eee;
+  z-index: 1;
 }
 
 ul.menu > li {
