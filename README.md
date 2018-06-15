@@ -1,6 +1,6 @@
 ## About
 
-[_The Water Temp_](http://thewatertemp.vmbed.com/) provides an alternate view of water temperature data as provided by [NOAA CO-OPS](https://tidesandcurrents.noaa.gov/stations.html?type=Physical%20Oceanography).
+[_The Water Temp_](http://thewatertemp.vmbed.com/) is an alternate view of water temperature data provided by the [NOAA CO-OPS](https://tidesandcurrents.noaa.gov/stations.html?type=Physical%20Oceanography).
 
 What is the water temperature now? How has it been for the last 24 hours? What about nearby?
 
@@ -12,12 +12,6 @@ It is designed to work on small screens i.e. phones.
 
 ## To Do
 
-* A bit of color would be nice
-* Something for larger screens (maybe side by side N station viewing)
-* Better error and loading handling
-* Maybe some caching
-* Search/Filter stations -v- the select/options
-
-## Why?
-
-For more on the mechanics...
+- A bit of color would be nice
+- Something for larger screens (maybe side by side N station viewing)
+- Maybe some caching
