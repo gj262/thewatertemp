@@ -16,13 +16,15 @@ var Controller = (function() {
 
       fetchData();
 
-      station.watch(function() {
-        if (self.dataRequest) {
-          self.dataRequest.abort();
+      station.watch(function(before) {
+        if (self.station.get().id !== before.id) {
+          if (self.dataRequest) {
+            self.dataRequest.abort();
+          }
+          self.temp.change({});
+          self.error.change("");
+          fetchData();
         }
-        self.temp.change({});
-        self.error.change("");
-        fetchData();
       });
     }
 
@@ -67,12 +69,14 @@ var Controller = (function() {
 
       fetchData();
 
-      station.watch(function() {
-        if (self.dataRequest) {
-          self.dataRequest.abort();
+      station.watch(function(before) {
+        if (self.station.get().id !== before.id) {
+          if (self.dataRequest) {
+            self.dataRequest.abort();
+          }
+          self.range.change({});
+          fetchData();
         }
-        self.range.change({});
-        fetchData();
       });
     }
 
@@ -319,14 +323,16 @@ var Controller = (function() {
 
       fetchData();
 
-      self.stationWatchId = station.watch(function() {
-        if (self.dataRequest) {
-          self.dataRequest.abort();
+      self.stationWatchId = station.watch(function(before) {
+        if (self.station.get().id !== before.id) {
+          if (self.dataRequest) {
+            self.dataRequest.abort();
+          }
+          self.comparison.get().series.forEach(function(seriesItem) {
+            seriesItem.range.change({});
+          });
+          fetchData();
         }
-        self.comparison.get().series.forEach(function(seriesItem) {
-          seriesItem.range.change({});
-        });
-        fetchData();
       });
     }
 
@@ -376,14 +382,16 @@ var Controller = (function() {
 
       fetchData();
 
-      self.stationWatchId = station.watch(function() {
-        if (self.dataRequest) {
-          self.dataRequest.abort();
+      self.stationWatchId = station.watch(function(before) {
+        if (self.station.get().id !== before.id) {
+          if (self.dataRequest) {
+            self.dataRequest.abort();
+          }
+          self.nextYearToFetch = todaysDate.getFullYear() - 1;
+          self.consecutiveBlankYears = 0;
+          self.comparison.change({ series: [] }, { augmentObject: true });
+          fetchData();
         }
-        self.nextYearToFetch = todaysDate.getFullYear() - 1;
-        self.consecutiveBlankYears = 0;
-        self.comparison.change({ series: [] }, { augmentObject: true });
-        fetchData();
       });
     }
 
