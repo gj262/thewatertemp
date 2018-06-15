@@ -27,10 +27,12 @@ var Controller = (function() {
     }
 
     function fetchData() {
+      self.temp.change({ loading: true }, { augmentObject: true });
       self.dataRequest = fetch(getBaseDataURL(self.station.get().id) + "&date=latest", fetched);
     }
 
     function fetched(response) {
+      self.temp.change({ loading: false }, { augmentObject: true });
       self.dataRequest = null;
       var value;
       var time;
@@ -47,7 +49,7 @@ var Controller = (function() {
         console.log(e);
       }
       if (value && time) {
-        self.temp.change({ value: value, caption: time });
+        self.temp.change({ value: value, caption: time }, { augmentObject: true });
       }
     }
   }
