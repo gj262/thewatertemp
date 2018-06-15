@@ -111,6 +111,18 @@ ul.station-menu {
   display: block;
 }
 
+.latest-temp {
+  display: flex;
+}
+
+.latest-temp > :nth-child(1) {
+  flex-basis: 33%;
+  flex-grow: 1;
+}
+.latest-temp > :nth-child(2) {
+  flex-basis: 66%;
+}
+
 .station-error.no-error {
   display: none;
 }
