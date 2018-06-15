@@ -13,7 +13,7 @@ var View = (function() {
         throw new Error("expected to find " + id);
       }
 
-      var caption = temp.get().caption || "--";
+      var caption = getCaptionForDisplay(temp);
 
       element.innerHTML =
         "<span class=\"temp-value\">" +
@@ -42,8 +42,8 @@ var View = (function() {
       if (self.temp.get().value !== before.value) {
         self.valueElement.innerHTML = getValueForDisplay(self.temp, self.displayUnits);
       }
-      if (self.temp.get().caption !== before.caption) {
-        self.captionElement.innerHTML = self.temp.get().caption || "--";
+      if (self.temp.get().caption !== before.caption || self.temp.get().loading !== before.loading) {
+        self.captionElement.innerHTML = getCaptionForDisplay(self.temp);
       }
     }
 
@@ -66,6 +66,10 @@ var View = (function() {
       } else {
         return "--.-";
       }
+    }
+
+    function getCaptionForDisplay(temp) {
+      return temp.get().loading ? "Loading..." : temp.get().caption || "--";
     }
   }
 
