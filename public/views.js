@@ -157,7 +157,8 @@ var View = (function() {
           if (item.range) {
             Range(id + "-range", item.range, self.displayUnits);
           } else {
-            element.children[1].innerHTML = "<span>There is no data available for this date.</span>";
+            element.children[1].innerHTML =
+              "<span>" + (item.message ? item.message : "There is no data available for this date.") + "</span>";
           }
         }
       });

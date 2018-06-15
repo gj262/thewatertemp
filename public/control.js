@@ -431,6 +431,19 @@ var Controller = (function() {
 
       if (!self.consecutiveBlankYears || self.consecutiveBlankYears < 3) {
         fetchData(self.stationId);
+      } else {
+        self.comparison.change(
+          {
+            series: self.comparison.get().series.concat([
+              {
+                title: "No more data",
+                noData: true,
+                message: "Tried years: " + (forYear + 2) + ", " + (forYear + 1) + " & " + forYear
+              }
+            ])
+          },
+          { augmentObject: true }
+        );
       }
     }
 
