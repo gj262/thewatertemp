@@ -1,7 +1,8 @@
 module.exports = {
   extends: ["eslint:recommended"],
   env: {
-    browser: true
+    browser: true,
+    mocha: true
   },
   rules: {
     "no-console": "off",
