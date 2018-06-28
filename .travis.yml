@@ -5,6 +5,8 @@ node_js:
 
 cache:
   directories:
+    - ~/.npm
+    - ~/.cache
 
 install:
   - npm install
