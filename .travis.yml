@@ -15,4 +15,5 @@ before_script:
   - (cd public && python ../serve.py) &
 
 script:
+  - eslint public
   - cypress run --record --key 43e14064-ee97-42a7-b99c-be33dabe08d1
