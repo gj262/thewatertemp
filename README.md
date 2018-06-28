@@ -1,5 +1,7 @@
 ## About
 
+[![Build Status](https://travis-ci.org/gj262/thewatertemp.svg?branch=master)](https://travis-ci.org/gj262/thewatertemp)
+
 [_The Water Temp_](http://thewatertemp.vmbed.com/) is an alternate view of water temperature data provided by the [NOAA CO-OPS](https://tidesandcurrents.noaa.gov/stations.html?type=Physical%20Oceanography).
 
 What is the water temperature now? How has it been for the last 24 hours? What about nearby?
