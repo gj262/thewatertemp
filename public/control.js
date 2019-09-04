@@ -110,7 +110,7 @@ var Controller = (function() {
     }
 
     function fetchStations() {
-      fetch("https://tidesandcurrents.noaa.gov/mdapi/v0.6/webapi/stations.json?type=watertemp", fetched);
+      fetch("https://tidesandcurrents.noaa.gov/mdapi/latest/webapi/stations.json?type=watertemp", fetched);
     }
 
     function fetched(response) {
