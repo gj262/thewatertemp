@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/gj262/thewatertemp.svg?branch=master)](https://travis-ci.org/gj262/thewatertemp)
 
-[_The Water Temp_](http://thewatertemp.vmbed.com/) is an alternate view of water temperature data provided by the [NOAA CO-OPS](https://tidesandcurrents.noaa.gov/stations.html?type=Physical%20Oceanography).
+[_The Water Temp_](https://sleepy-bohr-1350a8.netlify.com/) is an alternate view of water temperature data provided by the [NOAA CO-OPS](https://tidesandcurrents.noaa.gov/stations.html?type=Physical%20Oceanography).
 
 What is the water temperature now? How has it been for the last 24 hours? What about nearby?
 
@@ -12,8 +12,6 @@ It is designed to work on small screens i.e. phones.
 
 ![screen](screenshot.jpg)
 
-## To Do
+## Motivation
 
-- A bit of color would be nice
-- Something for larger screens (maybe side by side N station viewing)
-- Maybe some caching
+This is primarily an exercise in developing a modern web application limited to web standards.
